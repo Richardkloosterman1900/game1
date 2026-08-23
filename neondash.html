@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neon Dash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Baloo+2:wght@500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#070312;
+    --deep:#120a28;
+    --cyan:#22e0ff;
+    --magenta:#ff2ea6;
+    --lime:#9dff3d;
+    --amber:#ffb038;
+    --ink:#f4f0ff;
+    --ink-dim:#a99cd0;
+    --panel:rgba(10,5,24,0.82);
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 1000px 480px at 50% 0%, #2a1250 0%, transparent 62%),
+      var(--void);
+    color:var(--ink);
+    font-family:'Baloo 2', 'Trebuchet MS', sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:26px 16px 46px;
+    gap:20px;
+  }
+
+  .hero{text-align:center; max-width:660px;}
+
+  .eyebrow{
+    font-weight:700;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    font-size:0.74rem;
+    color:var(--cyan);
+    margin:0 0 8px;
+  }
+
+  h1{
+    font-family:'Bungee', 'Baloo 2', sans-serif;
+    font-weight:400;
+    font-size:clamp(2.4rem, 6.5vw, 3.9rem);
+    letter-spacing:0.02em;
+    margin:0;
+    line-height:1;
+    text-wrap:balance;
+    color:var(--ink);
+    text-shadow:
+      0 0 24px rgba(34,224,255,0.5),
+      3px 3px 0 var(--magenta);
+  }
+
+  .hero p{margin:12px 0 0; color:var(--ink-dim); font-size:1rem; line-height:1.5;}
+
+  .stage-wrap{position:relative; width:min(960px, 96vw);}
+
+  .stage{
+    position:relative;
+    width:100%;
+    aspect-ratio:880/540;
+    border-radius:14px;
+    overflow:hidden;
+    border:2px solid rgba(34,224,255,0.35);
+    box-shadow:
+      0 0 0 1px rgba(255,46,166,0.2),
+      0 0 44px -8px rgba(34,224,255,0.28),
+      0 24px 60px -20px rgba(0,0,0,0.9);
+    background:#04020c;
+  }
+
+  canvas#game{display:block; width:100%; height:100%; cursor:pointer;}
+
+  /* voortgangsbalk bovenaan, net als in het origineel */
+  .progress{
+    position:absolute;
+    top:12px; left:50%;
+    transform:translateX(-50%);
+    width:56%;
+    height:20px;
+    background:rgba(8,4,20,0.75);
+    border:2px solid rgba(244,240,255,0.45);
+    border-radius:10px;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, var(--cyan), var(--lime));
+    box-shadow:0 0 14px rgba(157,255,61,0.6);
+    transition:width 0.08s linear;
+  }
+  .progress-text{
+    position:absolute;
+    inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Bungee', sans-serif;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    color:#fff;
+    text-shadow:0 1px 3px rgba(0,0,0,0.9);
+  }
+
+  .attempts{
+    position:absolute;
+    top:40px; left:50%;
+    transform:translateX(-50%);
+    font-family:'Bungee', sans-serif;
+    font-size:0.8rem;
+    letter-spacing:0.1em;
+    color:rgba(244,240,255,0.55);
+    pointer-events:none;
+  }
+
+  .best{
+    position:absolute;
+    top:12px; right:14px;
+    background:var(--panel);
+    border:1px solid rgba(157,255,61,0.35);
+    border-radius:10px;
+    padding:6px 12px;
+    text-align:right;
+    pointer-events:none;
+  }
+  .best .label{display:block; font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-dim); font-weight:700;}
+  .best .value{font-family:'Bungee', sans-serif; font-size:1.05rem; color:var(--lime);}
+
+  .overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    text-align:center;
+    background:radial-gradient(ellipse at center, rgba(18,10,40,0.93), rgba(4,2,12,0.99));
+    padding:24px;
+  }
+  .overlay.hidden{display:none;}
+
+  .overlay h2{
+    font-family:'Bungee', sans-serif;
+    font-weight:400;
+    font-size:clamp(1.6rem, 4.6vw, 2.4rem);
+    margin:0;
+    color:var(--cyan);
+    text-shadow:0 0 20px rgba(34,224,255,0.55);
+  }
+  .overlay h2.win{color:var(--lime); text-shadow:0 0 20px rgba(157,255,61,0.55);}
+
+  .overlay p{margin:0; max-width:440px; color:var(--ink-dim); line-height:1.55; font-size:0.96rem;}
+
+  .key-row{display:flex; gap:8px; justify-content:center; margin-top:2px; flex-wrap:wrap;}
+
+  kbd{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    background:#1d1140;
+    border:1px solid rgba(34,224,255,0.4);
+    border-bottom:3px solid rgba(0,0,0,0.5);
+    border-radius:8px;
+    padding:6px 12px;
+    font-size:0.92rem;
+    color:var(--ink);
+  }
+
+  button.play-btn{
+    font-family:'Bungee', sans-serif;
+    font-size:1.05rem;
+    letter-spacing:0.04em;
+    background:linear-gradient(180deg, var(--cyan) 0%, #0f8fb8 100%);
+    color:#03202a;
+    border:none;
+    border-radius:10px;
+    padding:13px 34px;
+    cursor:pointer;
+    box-shadow:0 5px 0 #0a6180, 0 10px 26px -8px rgba(34,224,255,0.6);
+    transition:transform 0.08s ease;
+  }
+  button.play-btn:active{transform:translateY(3px); box-shadow:0 2px 0 #0a6180;}
+  button.play-btn:focus-visible{outline:3px solid var(--magenta); outline-offset:3px;}
+
+  .legend{
+    width:min(960px, 96vw);
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+    gap:12px;
+  }
+
+  .legend-card{
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:12px;
+    padding:13px 16px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+
+  .swatch{
+    width:34px; height:34px;
+    border-radius:8px;
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.15rem;
+  }
+  .swatch.jump{background:rgba(34,224,255,0.14); box-shadow:inset 0 0 0 1px rgba(34,224,255,0.4);}
+  .swatch.spike{background:rgba(255,46,166,0.14); box-shadow:inset 0 0 0 1px rgba(255,46,166,0.4);}
+  .swatch.block{background:rgba(157,255,61,0.14); box-shadow:inset 0 0 0 1px rgba(157,255,61,0.4);}
+  .swatch.wall{background:rgba(255,176,56,0.14); box-shadow:inset 0 0 0 1px rgba(255,176,56,0.4);}
+
+  .legend-card h3{margin:0 0 2px; font-size:0.93rem; color:var(--ink);}
+  .legend-card p{margin:0; font-size:0.83rem; color:var(--ink-dim); line-height:1.4;}
+
+  footer{color:var(--ink-dim); font-size:0.79rem; text-align:center; max-width:580px; opacity:0.7;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <p class="eyebrow">Prototype · gemaakt voor Milan</p>
+  <h1>NEON DASH</h1>
+  <p>De kubus rent vanzelf vooruit — jij springt op het juiste moment. Elke poging begint weer bij nul, dus leer het ritme van de baan uit je hoofd. Precies zoals Geometry Dash, maar dan in 3D.</p>
+</div>
+
+<div class="stage-wrap">
+  <div class="stage" id="stage">
+    <canvas id="game" width="880" height="540" aria-label="Neon Dash 3D platformspel"></canvas>
+
+    <div class="progress">
+      <div class="progress-fill" id="progress-fill"></div>
+      <div class="progress-text" id="progress-text">0%</div>
+    </div>
+    <div class="attempts" id="attempts">POGING 1</div>
+    <div class="best">
+      <span class="label">Beste</span>
+      <span class="value" id="best-value">0%</span>
+    </div>
+
+    <div class="overlay" id="start-overlay">
+      <h2>Klaar voor de rit?</h2>
+      <p>De kubus rent vanzelf. Springen doe je met <strong>spatie</strong> of een <strong>muisklik</strong> — ingedrukt houden laat hem blijven springen zodra hij landt. Met <strong>A</strong> en <strong>D</strong> schuif je opzij om muren te ontwijken.</p>
+      <div class="key-row">
+        <kbd>Spatie / Klik = springen</kbd>
+        <kbd>A</kbd><kbd>D</kbd>
+        <kbd>R = opnieuw</kbd>
+        <kbd>M = geluid uit</kbd>
+      </div>
+      <button class="play-btn" id="start-btn">Start</button>
+    </div>
+
+    <div class="overlay hidden" id="win-overlay">
+      <h2 class="win">Gehaald!</h2>
+      <p id="win-text">Je hebt de hele baan uitgespeeld.</p>
+      <button class="play-btn" id="again-btn">Nog een keer</button>
+    </div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-card">
+    <div class="swatch jump">🟦</div>
+    <div><h3>De kubus</h3><p>Rent vanzelf vooruit en tuimelt door de lucht als je springt</p></div>
+  </div>
+  <div class="legend-card">
+    <div class="swatch spike">🔺</div>
+    <div><h3>Punten</h3><p>Raak je er eentje, dan is de poging voorbij. Eroverheen springen dus</p></div>
+  </div>
+  <div class="legend-card">
+    <div class="swatch block">🟩</div>
+    <div><h3>Blokken</h3><p>Hier kun je bovenop landen. Klap je tegen de zijkant, dan ga je eraan</p></div>
+  </div>
+  <div class="legend-card">
+    <div class="swatch wall">🟧</div>
+    <div><h3>Muren</h3><p>Te hoog om over te springen — schuif met A of D naar een vrije baan</p></div>
+  </div>
+</div>
+
+<footer>Eigen 3D-engine in canvas: polygonen met perspectiefprojectie en dieptesortering, plus een ritmespoor dat live in de browser wordt gespeeld. De baan is altijd exact hetzelfde, zodat je hem uit je hoofd kunt leren.</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const progressFill = document.getElementById('progress-fill');
+  const progressText = document.getElementById('progress-text');
+  const attemptsEl = document.getElementById('attempts');
+  const bestValueEl = document.getElementById('best-value');
+  const startOverlay = document.getElementById('start-overlay');
+  const winOverlay = document.getElementById('win-overlay');
+  const winText = document.getElementById('win-text');
+
+  let bestPct = 0;
+  try{ bestPct = parseInt(localStorage.getItem('neondash-best') || '0', 10) || 0; }catch(e){}
+  bestValueEl.textContent = bestPct + '%';
+
+  // =======================================================================
+  //  3D-ENGINE
+  //  Wereldassen: x = links/rechts, y = omhoog, z = vooruit de diepte in.
+  //  Elk vlak wordt geprojecteerd, op diepte gesorteerd en van ver naar
+  //  dichtbij getekend (schildersalgoritme).
+  // =======================================================================
+  const FOCAL = H * 1.05;
+  const NEAR = 0.4;
+
+  const cam = {x: 0, y: 4.4, z: -9, pitch: 0.20};
+  let faces = [];
+
+  function project(x, y, z){
+    const dx = x - cam.x, dy = y - cam.y, dz = z - cam.z;
+    const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+    const cy = dy*cp + dz*sp;
+    const cz = -dy*sp + dz*cp;
+    if(cz < NEAR) return null;
+    const s = FOCAL / cz;
+    return {x: W/2 + dx*s, y: H/2 - cy*s, z: cz};
+  }
+
+  function addFace(verts, fill, stroke, lw, glow){
+    const pts = [];
+    let sum = 0;
+    for(let i=0; i<verts.length; i++){
+      const p = project(verts[i][0], verts[i][1], verts[i][2]);
+      if(!p) return;                    // vlak deels achter de camera: overslaan
+      pts.push(p);
+      sum += p.z;
+    }
+    faces.push({pts, depth: sum/verts.length, fill, stroke, lw: lw || 0, glow: glow || 0});
+  }
+
+  function paintFaces(){
+    faces.sort((a, b) => b.depth - a.depth);
+    for(const f of faces){
+      ctx.beginPath();
+      ctx.moveTo(f.pts[0].x, f.pts[0].y);
+      for(let i=1; i<f.pts.length; i++) ctx.lineTo(f.pts[i].x, f.pts[i].y);
+      ctx.closePath();
+      if(f.fill){ ctx.fillStyle = f.fill; ctx.fill(); }
+      if(f.stroke){
+        if(f.glow){ ctx.save(); ctx.shadowColor = f.stroke; ctx.shadowBlur = f.glow; }
+        ctx.strokeStyle = f.stroke;
+        ctx.lineWidth = f.lw || 1;
+        ctx.stroke();
+        if(f.glow) ctx.restore();
+      }
+    }
+    faces.length = 0;
+  }
+
+  // Rechthoekig blok: onderkant op y, hoogte h. Alleen de zichtbare kanten.
+  function addBox(x, y, z, hw, h, hd, pal){
+    const x0 = x - hw, x1 = x + hw;
+    const y0 = y, y1 = y + h;
+    const z0 = z - hd, z1 = z + hd;
+
+    // bovenkant
+    addFace([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]], pal.top, pal.edge, 1.6, pal.glow);
+    // voorkant (naar de camera toe)
+    addFace([[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0]], pal.front, pal.edge, 1.6, pal.glow);
+    // de zijkant die je vanaf de camera kunt zien
+    if(x > cam.x) addFace([[x0,y0,z0],[x0,y0,z1],[x0,y1,z1],[x0,y1,z0]], pal.side, pal.edge, 1.2, 0);
+    else          addFace([[x1,y0,z0],[x1,y0,z1],[x1,y1,z1],[x1,y1,z0]], pal.side, pal.edge, 1.2, 0);
+  }
+
+  // Piramide met de punt omhoog: de klassieke stekel
+  function addSpike(x, z, hw, h, pal){
+    const y0 = 0, apex = [x, h, z];
+    const c = [[x-hw,y0,z-hw],[x+hw,y0,z-hw],[x+hw,y0,z+hw],[x-hw,y0,z+hw]];
+    addFace([c[0], c[1], apex], pal.front, pal.edge, 1.6, pal.glow);          // voorzijde
+    if(x > cam.x) addFace([c[3], c[0], apex], pal.side, pal.edge, 1.2, 0);
+    else          addFace([c[1], c[2], apex], pal.side, pal.edge, 1.2, 0);
+  }
+
+  // Kubus die om zijn eigen as tuimelt (de speler)
+  function addTumblingCube(cx, cy, cz, s, rot, pal){
+    const h = s/2;
+    const co = Math.cos(rot), si = Math.sin(rot);
+    const local = [
+      [-h,-h,-h],[h,-h,-h],[h,h,-h],[-h,h,-h],
+      [-h,-h, h],[h,-h, h],[h,h, h],[-h,h, h]
+    ];
+    const v = local.map(p => {
+      const y = p[1]*co - p[2]*si;
+      const z = p[1]*si + p[2]*co;
+      return [cx + p[0], cy + y, cz + z];
+    });
+    const quads = [
+      [0,1,2,3, pal.front], [5,4,7,6, pal.front],
+      [4,0,3,7, pal.side],  [1,5,6,2, pal.side],
+      [3,2,6,7, pal.top],   [4,5,1,0, pal.bottom]
+    ];
+    for(const q of quads){
+      addFace([v[q[0]], v[q[1]], v[q[2]], v[q[3]]], q[4], pal.edge, 2, pal.glow);
+    }
+  }
+
+  // =======================================================================
+  //  DE BAAN
+  //  Vaste segmenten, altijd in dezelfde volgorde: elke poging is identiek,
+  //  zodat je de baan uit je hoofd kunt leren.
+  // =======================================================================
+  const LANE = 2.4;                    // afstand tussen de banen
+  const TRACK_HALF = 3.9;
+  const SEG_LEN = 24;
+
+  // Afstanden zijn doorgerekend op de sprong: die is 2,4 hoog en 6,8 lang,
+  // en blijft ongeveer 5 lengte-eenheden bóven stekelhoogte. Een dubbele
+  // stekel staat daarom 1,8 uit elkaar, en losse sprongen minstens 9.
+  const SEGMENTS = [
+    [],                                                                    // rustige aanloop
+    [{t:'spike', x:0, z:12}],
+    [{t:'spike', x:0, z:2}, {t:'spike', x:0, z:14}],
+    [{t:'spike', x:0, z:2}, {t:'spike', x:0, z:3.8}, {t:'spike', x:0, z:16}],
+    [{t:'block', x:0, z:4}, {t:'spike', x:0, z:16}],
+    [{t:'spike', x:-LANE, z:2}, {t:'spike', x:LANE, z:14}],
+    [{t:'wall', x:-LANE, z:8}, {t:'wall', x:0, z:8}],                      // wijk uit naar rechts
+    [{t:'spike', x:LANE, z:2}, {t:'wall', x:LANE, z:14}, {t:'wall', x:0, z:14}],
+    [{t:'block', x:0, z:4}, {t:'block', x:0, z:16}],
+    [{t:'spike', x:0, z:2}, {t:'spike', x:0, z:3.8}, {t:'spike', x:0, z:16}],
+    [{t:'plat', x:-LANE, z:6}, {t:'spike', x:0, z:6}, {t:'plat', x:LANE, z:18}],
+    [{t:'wall', x:0, z:6}, {t:'wall', x:LANE, z:6}, {t:'spike', x:-LANE, z:18}],
+    [{t:'spike', x:-LANE, z:4}, {t:'spike', x:LANE, z:16}],
+    [{t:'spike', x:-LANE, z:4}, {t:'spike', x:0, z:4}, {t:'spike', x:LANE, z:16}],
+    [{t:'wall', x:-LANE, z:6}, {t:'wall', x:0, z:6}, {t:'spike', x:LANE, z:18}],
+    [{t:'block', x:0, z:4}, {t:'spike', x:0, z:16}, {t:'spike', x:0, z:17.8}],
+    [{t:'spike', x:-LANE, z:4}, {t:'spike', x:LANE, z:4}, {t:'wall', x:0, z:16}, {t:'wall', x:LANE, z:16}],
+    [{t:'spike', x:0, z:4}, {t:'spike', x:0, z:5.8}, {t:'block', x:0, z:18}],
+    [{t:'wall', x:-LANE, z:6}, {t:'wall', x:LANE, z:6}, {t:'spike', x:0, z:18}, {t:'spike', x:0, z:19.8}],
+    []                                                                     // finish-aanloop
+  ];
+
+  const SHAPES = {
+    spike: {hw:0.45, h:1.3, hd:0.45, deadly:true,  land:false},
+    block: {hw:1.05, h:1.0, hd:1.05, deadly:false, land:true},
+    plat:  {hw:1.25, h:0.6, hd:1.45, deadly:false, land:true},
+    wall:  {hw:1.10, h:3.2, hd:0.75, deadly:true,  land:false}
+  };
+
+  const PAL = {
+    spike: {front:'#ff2ea6', side:'#b31c73', top:'#ff6fc4', edge:'#ffd6ee', glow:12},
+    block: {front:'#4fd44f', side:'#2c8a2c', top:'#9dff3d', edge:'#e4ffc9', glow:10},
+    plat:  {front:'#2fb4d4', side:'#1c7a91', top:'#22e0ff', edge:'#c9f6ff', glow:10},
+    wall:  {front:'#e8901f', side:'#a35f0f', top:'#ffb038', edge:'#ffe3b0', glow:12},
+    cube:  {front:'#22e0ff', side:'#12a2c4', top:'#8df3ff', bottom:'#0b7d99', edge:'#ffffff', glow:16}
+  };
+
+  const obstacles = [];
+  SEGMENTS.forEach((seg, i) => {
+    for(const o of seg){
+      const s = SHAPES[o.t];
+      obstacles.push({type: o.t, x: o.x, z: i*SEG_LEN + o.z, ...s});
+    }
+  });
+  obstacles.sort((a, b) => a.z - b.z);
+  const LEVEL_END = SEGMENTS.length * SEG_LEN;
+
+  // =======================================================================
+  //  SPELERSFYSICA
+  // =======================================================================
+  const SPEED = 15.5;          // vooruit, constant
+  const GRAVITY = -100;
+  const JUMP_V = 22;           // sprong: 2,4 hoog, 6,8 lang, 0,44 seconde
+  const JUMP_TIME = 2*JUMP_V / -GRAVITY;
+  const SIDE_SPEED = 9.5;
+  const CUBE = 1.0;
+  const HITBOX = 0.34;         // iets kleiner dan de kubus: net wat vergevingsgezinder
+
+  const player = {x: 0, y: 0, z: 0, vy: 0, onGround: true, rot: 0, alive: true};
+  let attempts = 1, running = false, dead = false, won = false;
+  let deathTimer = 0;
+  const shards = [];
+  let shake = 0, landPulse = 0;
+
+  const keys = {};
+  let jumpHeld = false;
+
+  function resetRun(){
+    player.x = 0; player.y = 0; player.z = 0;
+    player.vy = 0; player.onGround = true; player.rot = 0; player.alive = true;
+    dead = false; won = false; deathTimer = 0;
+    shards.length = 0; shake = 0;
+    cam.x = 0; cam.y = 4.4; cam.z = -9;
+    attemptsEl.textContent = 'POGING ' + attempts;
+    updateProgress();
+  }
+
+  function updateProgress(){
+    const pct = Math.max(0, Math.min(100, Math.round(player.z / LEVEL_END * 100)));
+    progressFill.style.width = pct + '%';
+    progressText.textContent = pct + '%';
+    return pct;
+  }
+
+  function tryJump(){
+    if(!running || dead) return;
+    if(player.onGround){
+      player.vy = JUMP_V;
+      player.onGround = false;
+      sfx.jump();
+    }
+  }
+
+  function die(){
+    if(dead) return;
+    dead = true;
+    player.alive = false;
+    shake = 1;
+    sfx.die();
+
+    const pct = updateProgress();
+    if(pct > bestPct){
+      bestPct = pct;
+      bestValueEl.textContent = bestPct + '%';
+      try{ localStorage.setItem('neondash-best', String(bestPct)); }catch(e){}
+    }
+
+    // de kubus spat uiteen in scherfjes
+    for(let i=0; i<22; i++){
+      const a = Math.random()*Math.PI*2, up = 4 + Math.random()*11;
+      shards.push({
+        x: player.x, y: player.y + 0.5, z: player.z,
+        vx: Math.cos(a)*(2 + Math.random()*7),
+        vy: up,
+        vz: Math.sin(a)*(2 + Math.random()*7) - 3,
+        s: 0.16 + Math.random()*0.26,
+        rot: Math.random()*Math.PI, vrot: (Math.random()-0.5)*16,
+        life: 0
+      });
+    }
+    deathTimer = 0.95;
+  }
+
+  function win(){
+    if(won) return;
+    won = true; running = false;
+    bestPct = 100;
+    bestValueEl.textContent = '100%';
+    try{ localStorage.setItem('neondash-best', '100'); }catch(e){}
+    winText.textContent = 'Uitgespeeld in poging ' + attempts + '. Netjes!';
+    winOverlay.classList.remove('hidden');
+    sfx.win();
+  }
+
+  // =======================================================================
+  //  GELUID: een klein ritmespoor dat live wordt gespeeld
+  // =======================================================================
+  let ac = null, master = null, muted = false;
+  const BPM = 140, BEAT = 60/BPM;
+  let nextNote = 0, step = 0, musicOn = false;
+
+  function ensureAudio(){
+    if(ac) return ac;
+    try{
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain();
+      master.gain.value = muted ? 0 : 0.9;
+      master.connect(ac.destination);
+    }catch(e){ ac = null; }
+    return ac;
+  }
+
+  function setMuted(on){
+    muted = on;
+    if(master && ac) master.gain.setTargetAtTime(muted ? 0 : 0.9, ac.currentTime, 0.02);
+  }
+
+  function blip(type, f0, f1, t, dur, vol){
+    if(!ac) return;
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(f0, t);
+    if(f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(f1, 1), t + dur);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+
+  function kick(t){
+    if(!ac) return;
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+    g.gain.setValueAtTime(0.55, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + 0.22);
+  }
+
+  function hat(t){
+    if(!ac) return;
+    const len = 2048;
+    const buf = ac.createBuffer(1, len, ac.sampleRate);
+    const ch = buf.getChannelData(0);
+    for(let i=0; i<len; i++) ch[i] = (Math.random()*2 - 1) * (1 - i/len);
+    const src = ac.createBufferSource(); src.buffer = buf;
+    const flt = ac.createBiquadFilter(); flt.type = 'highpass'; flt.frequency.value = 7000;
+    const g = ac.createGain(); g.gain.value = 0.14;
+    src.connect(flt); flt.connect(g); g.connect(master);
+    src.start(t);
+  }
+
+  // Am – F – C – G, twee maten per akkoord
+  const ROOTS = [110.00, 87.31, 130.81, 98.00];
+  const ARP = [0, 3, 7, 12, 7, 3, 12, 7];
+
+  function scheduleMusic(){
+    if(!ac || !musicOn) return;
+    while(nextNote < ac.currentTime + 0.2){
+      const t = Math.max(nextNote, ac.currentTime + 0.01);
+      const eighth = step % 8;
+      const chord = Math.floor(step / 8) % 4;
+      const root = ROOTS[chord];
+
+      if(eighth % 2 === 0) kick(t);
+      if(eighth === 4) blip('triangle', 220, 180, t, 0.12, 0.20);   // snare-achtige tik
+      hat(t);
+      blip('sawtooth', root, root, t, 0.18, 0.13);                  // bas
+      const semi = ARP[eighth];
+      blip('square', root*4*Math.pow(2, semi/12), root*4*Math.pow(2, semi/12), t, 0.1, 0.055);
+
+      nextNote += BEAT/2;
+      step++;
+    }
+  }
+
+  const sfx = {
+    jump(){ if(!ac) return; blip('square', 520, 900, ac.currentTime, 0.09, 0.16); },
+    land(){ if(!ac) return; blip('sine', 180, 90, ac.currentTime, 0.07, 0.13); },
+    die(){
+      if(!ac) return;
+      const t = ac.currentTime;
+      blip('sawtooth', 380, 40, t, 0.5, 0.3);
+      blip('square', 190, 30, t + 0.02, 0.45, 0.2);
+    },
+    win(){
+      if(!ac) return;
+      const t = ac.currentTime;
+      [0, 4, 7, 12].forEach((s, i) => blip('square', 440*Math.pow(2, s/12), 440*Math.pow(2, s/12), t + i*0.11, 0.3, 0.2));
+    }
+  };
+
+  // =======================================================================
+  //  INVOER
+  // =======================================================================
+  function isJumpKey(k){ return k === ' ' || k === 'arrowup' || k === 'w'; }
+
+  window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    keys[k] = true;
+    if(isJumpKey(k) || k === 'arrowdown'){ e.preventDefault(); }
+    if(isJumpKey(k)){ jumpHeld = true; tryJump(); }
+    if(k === 'm') setMuted(!muted);
+    if(k === 'r' && running && !dead) die();
+  });
+  window.addEventListener('keyup', e => {
+    const k = e.key.toLowerCase();
+    keys[k] = false;
+    if(isJumpKey(k)) jumpHeld = false;
+  });
+
+  canvas.addEventListener('mousedown', e => { e.preventDefault(); jumpHeld = true; tryJump(); });
+  window.addEventListener('mouseup', () => { jumpHeld = false; });
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); jumpHeld = true; tryJump(); }, {passive:false});
+  window.addEventListener('touchend', () => { jumpHeld = false; });
+
+  function startGame(){
+    startOverlay.classList.add('hidden');
+    winOverlay.classList.add('hidden');
+    ensureAudio();
+    if(ac && ac.state === 'suspended') ac.resume();
+    if(ac && !musicOn){ musicOn = true; nextNote = ac.currentTime + 0.1; step = 0; }
+    attempts = 1;
+    resetRun();
+    running = true;
+  }
+  document.getElementById('start-btn').addEventListener('click', startGame);
+  document.getElementById('again-btn').addEventListener('click', startGame);
+
+  // =======================================================================
+  //  UPDATE
+  // =======================================================================
+  function update(dt){
+    if(dead){
+      deathTimer -= dt;
+      for(const s of shards){
+        s.life += dt;
+        s.vy += GRAVITY*0.55*dt;
+        s.x += s.vx*dt; s.y += s.vy*dt; s.z += s.vz*dt;
+        s.rot += s.vrot*dt;
+      }
+      if(deathTimer <= 0){
+        attempts++;
+        resetRun();
+      }
+      if(shake > 0) shake = Math.max(0, shake - dt*2.6);
+      followCamera(dt, true);
+      return;
+    }
+
+    // vooruit
+    player.z += SPEED*dt;
+    if(player.z >= LEVEL_END - 6){ win(); return; }
+
+    // zijwaarts
+    let sx = 0;
+    if(keys['a'] || keys['arrowleft']) sx -= 1;
+    if(keys['d'] || keys['arrowright']) sx += 1;
+    player.x += sx * SIDE_SPEED * dt;
+    const limit = TRACK_HALF - CUBE/2;
+    player.x = Math.max(-limit, Math.min(limit, player.x));
+
+    // verticaal
+    const prevBottom = player.y;
+    player.vy += GRAVITY*dt;
+    player.y += player.vy*dt;
+
+    // tuimelen in de lucht, netjes rechtzetten bij de landing
+    if(!player.onGround){
+      player.rot += dt * (Math.PI / JUMP_TIME);   // een halve slag per sprong
+    }
+
+    // botsingen met alles in de buurt
+    let support = 0;
+    for(const o of obstacles){
+      if(o.z < player.z - 4) continue;
+      if(o.z > player.z + 4) break;
+      if(Math.abs(o.x - player.x) > o.hw + HITBOX) continue;
+      if(Math.abs(o.z - player.z) > o.hd + HITBOX) continue;
+
+      if(o.deadly){
+        // stekels en muren: raak = einde poging
+        if(player.y < o.h - 0.18){ die(); return; }
+        continue;
+      }
+      // blokken: bovenop landen mag, tegen de zijkant klappen niet
+      if(prevBottom >= o.h - 0.16 && player.y <= o.h){
+        if(o.h > support) support = o.h;
+      } else if(player.y < o.h - 0.16){
+        die(); return;
+      }
+    }
+
+    if(player.y <= support){
+      if(!player.onGround){
+        player.rot = Math.round(player.rot / (Math.PI/2)) * (Math.PI/2);
+        landPulse = 1;
+        sfx.land();
+      }
+      player.y = support;
+      player.vy = 0;
+      player.onGround = true;
+      if(jumpHeld) tryJump();     // ingedrukt houden = blijven springen
+    } else {
+      player.onGround = false;
+    }
+
+    // uit de baan gevallen (er zijn geen gaten, maar voor de zekerheid)
+    if(player.y < -6){ die(); return; }
+
+    if(landPulse > 0) landPulse = Math.max(0, landPulse - dt*4);
+    if(shake > 0) shake = Math.max(0, shake - dt*2.6);
+
+    updateProgress();
+    followCamera(dt, false);
+  }
+
+  function followCamera(dt, frozen){
+    const targetX = player.x * 0.55;
+    const targetY = 4.4 + Math.max(0, player.y) * 0.42;
+    const targetZ = player.z - 9.2;
+    const k = frozen ? 2.2 : 8;
+    cam.x += (targetX - cam.x) * Math.min(1, k*dt);
+    cam.y += (targetY - cam.y) * Math.min(1, k*dt);
+    cam.z = frozen ? cam.z + (targetZ - cam.z) * Math.min(1, 1.5*dt) : targetZ;
+  }
+
+  // =======================================================================
+  //  TEKENEN
+  // =======================================================================
+  function drawSky(beat){
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#160a33');
+    g.addColorStop(0.45, '#26104d');
+    g.addColorStop(0.62, '#4a1666');
+    g.addColorStop(1, '#0a0418');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // gloed rond de horizon, pulserend op de maat van de muziek
+    const glow = ctx.createRadialGradient(W/2, H*0.46, 10, W/2, H*0.46, W*0.55);
+    glow.addColorStop(0, 'rgba(255,46,166,' + (0.20 + beat*0.16) + ')');
+    glow.addColorStop(1, 'rgba(255,46,166,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H*0.75);
+
+    // verre sterren
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    for(let i=0; i<40; i++){
+      const sx = ((i*137.5) % W);
+      const sy = ((i*79.3) % (H*0.4));
+      ctx.fillRect(sx, sy, 1.5, 1.5);
+    }
+  }
+
+  function drawTrack(beat){
+    const zNear = cam.z + 1;
+    const zFar = cam.z + 96;
+
+    // wegdek
+    const a = project(-TRACK_HALF, 0, zNear), b = project(TRACK_HALF, 0, zNear);
+    const c = project(TRACK_HALF, 0, zFar),   d = project(-TRACK_HALF, 0, zFar);
+    if(a && b && c && d){
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y);
+      ctx.closePath();
+      const g = ctx.createLinearGradient(0, d.y, 0, a.y);
+      g.addColorStop(0, '#0e0724');
+      g.addColorStop(1, '#1b0f3d');
+      ctx.fillStyle = g;
+      ctx.fill();
+    }
+
+    // dwarslijnen die met je meebewegen
+    ctx.lineWidth = 1.4;
+    const start = Math.floor(zNear / 3) * 3;
+    for(let z = start; z < zFar; z += 3){
+      const p0 = project(-TRACK_HALF, 0, z), p1 = project(TRACK_HALF, 0, z);
+      if(!p0 || !p1) continue;
+      const fade = Math.max(0, 1 - (z - cam.z)/72);
+      ctx.strokeStyle = 'rgba(34,224,255,' + (0.30*fade) + ')';
+      ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+    }
+
+    // baanlijnen in de lengte
+    for(const lx of [-LANE*1.5, -LANE*0.5, LANE*0.5, LANE*1.5]){
+      const p0 = project(lx, 0, zNear), p1 = project(lx, 0, zFar);
+      if(!p0 || !p1) continue;
+      ctx.strokeStyle = 'rgba(157,255,61,0.16)';
+      ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+    }
+
+    // neonrails langs de zijkanten, pulserend op de beat
+    ctx.save();
+    ctx.shadowColor = '#ff2ea6';
+    ctx.shadowBlur = 10 + beat*14;
+    ctx.lineWidth = 3 + beat*1.6;
+    for(const sx of [-TRACK_HALF, TRACK_HALF]){
+      const p0 = project(sx, 0.06, zNear), p1 = project(sx, 0.06, zFar);
+      if(!p0 || !p1) continue;
+      ctx.strokeStyle = '#ff2ea6';
+      ctx.beginPath(); ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.stroke();
+    }
+    ctx.restore();
+
+    // finishpoort
+    if(LEVEL_END - 6 - cam.z < 90){
+      const gz = LEVEL_END - 6;
+      const pal = {front:'#9dff3d', side:'#5fae1f', top:'#d6ff9c', edge:'#ffffff', glow:18};
+      addBox(-TRACK_HALF - 0.4, 0, gz, 0.4, 6, 0.4, pal);
+      addBox(TRACK_HALF + 0.4, 0, gz, 0.4, 6, 0.4, pal);
+      addBox(0, 5.6, gz, TRACK_HALF + 0.8, 0.5, 0.4, pal);
+    }
+  }
+
+  function drawObstacles(){
+    for(const o of obstacles){
+      const rel = o.z - cam.z;
+      if(rel < -2 || rel > 92) continue;
+      if(o.type === 'spike'){
+        addSpike(o.x, o.z, o.hw, o.h, PAL.spike);
+      } else {
+        addBox(o.x, 0, o.z, o.hw, o.h, o.hd, PAL[o.type]);
+      }
+    }
+  }
+
+  function drawPlayer(){
+    if(dead){
+      for(const s of shards){
+        const alpha = Math.max(0, 1 - s.life/1.1);
+        if(alpha <= 0) continue;
+        addTumblingCube(s.x, s.y, s.z, s.s, s.rot, {
+          front: 'rgba(34,224,255,' + alpha + ')',
+          side:  'rgba(18,162,196,' + alpha + ')',
+          top:   'rgba(141,243,255,' + alpha + ')',
+          bottom:'rgba(11,125,153,' + alpha + ')',
+          edge:  'rgba(255,255,255,' + (alpha*0.8) + ')',
+          glow: 8
+        });
+      }
+      return;
+    }
+    // schaduw op de vloer
+    const sh = project(player.x, 0.02, player.z);
+    if(sh){
+      const scale = FOCAL / Math.max(1, sh.z);
+      const r = 0.55 * scale;
+      const fade = Math.max(0.12, 0.5 - player.y*0.12);
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,' + fade + ')';
+      ctx.beginPath();
+      ctx.ellipse(sh.x, sh.y, r, r*0.34, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+    addTumblingCube(player.x, player.y + CUBE/2, player.z, CUBE, player.rot, PAL.cube);
+  }
+
+  // =======================================================================
+  //  HOOFDLUS
+  // =======================================================================
+  let last = performance.now();
+
+  function loop(now){
+    const dt = Math.min((now - last)/1000, 0.033);
+    last = now;
+
+    if(running) update(dt);
+    scheduleMusic();
+
+    // hoe ver zitten we in de maat? (voor de neonpuls)
+    let beat = 0;
+    if(ac && musicOn){
+      const phase = (ac.currentTime % BEAT) / BEAT;
+      beat = Math.max(0, 1 - phase*2.2);
+    }
+
+    ctx.save();
+    if(shake > 0 && !reduceMotion){
+      ctx.translate((Math.random()-0.5)*22*shake, (Math.random()-0.5)*22*shake);
+    }
+
+    drawSky(beat);
+    drawTrack(beat);
+    drawObstacles();
+    drawPlayer();
+    paintFaces();
+
+    ctx.restore();
+
+    // rode waas bij een crash
+    if(dead){
+      const t = Math.max(0, deathTimer/0.95);
+      ctx.fillStyle = 'rgba(255,40,90,' + (t*0.22) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  resetRun();
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

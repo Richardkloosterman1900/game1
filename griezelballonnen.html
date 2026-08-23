@@ -1,0 +1,1666 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Griezelballonnen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Baloo+2:wght@500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0d0918;
+    --locker-dark:#233a52;
+    --ghost:#8bffb0;
+    --ember:#ff8c42;
+    --ember-dark:#c8632a;
+    --gold:#ffd166;
+    --ink:#f2eefc;
+    --ink-dim:#b8afd4;
+    --panel:rgba(13,9,24,0.78);
+    --panel-border:rgba(139,255,176,0.28);
+    --danger:#ff6b6b;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, #1c1533 0%, transparent 60%),
+      var(--bg-deep);
+    color:var(--ink);
+    font-family:'Baloo 2', 'Trebuchet MS', sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 16px 48px;
+    gap:22px;
+  }
+
+  .hero{text-align:center; max-width:660px;}
+
+  .eyebrow{
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    font-size:0.78rem;
+    color:var(--ghost);
+    margin:0 0 6px;
+  }
+
+  h1{
+    font-family:'Bangers', 'Baloo 2', sans-serif;
+    font-weight:400;
+    font-size:clamp(2.6rem, 7vw, 4.2rem);
+    letter-spacing:0.03em;
+    margin:0;
+    line-height:0.95;
+    text-wrap:balance;
+    color:var(--ink);
+    text-shadow:0 0 22px rgba(139,255,176,0.35), 3px 3px 0 var(--ember-dark);
+  }
+
+  .hero p{margin:12px 0 0; color:var(--ink-dim); font-size:1.02rem; line-height:1.5;}
+
+  .stage-wrap{position:relative; width:min(960px, 96vw);}
+
+  .stage{
+    position:relative;
+    width:100%;
+    aspect-ratio:880/540;
+    border-radius:16px;
+    overflow:hidden;
+    border:3px solid #1b2c3f;
+    box-shadow:
+      0 0 0 1px rgba(139,255,176,0.12),
+      0 24px 60px -20px rgba(0,0,0,0.85);
+    background:#04030a;
+  }
+
+  canvas#game{display:block; width:100%; height:100%; cursor:none;}
+  .stage.unlocked canvas#game{cursor:pointer;}
+
+  .hud{
+    position:absolute;
+    top:12px; left:12px; right:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    pointer-events:none;
+  }
+
+  .hud-panel{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    backdrop-filter:blur(6px);
+    border-radius:12px;
+    padding:8px 14px;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .hud-label{font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-dim); font-weight:700;}
+  .hud-value{font-family:'Bangers', sans-serif; font-size:1.5rem; line-height:1.15;}
+  #score-value{color:var(--ember);}
+  #combo-value{color:var(--ghost); font-size:1.2rem;}
+  .hud-panel.right{align-items:flex-end;}
+
+  .timer-panel{
+    align-items:center;
+    position:absolute;
+    top:12px; left:50%;
+    transform:translateX(-50%);
+  }
+  #timer-value{font-size:1.7rem; color:var(--ink);}
+  #timer-value.low{color:var(--danger);}
+
+  .overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    text-align:center;
+    background:radial-gradient(ellipse at center, rgba(16,11,30,0.94), rgba(3,2,8,0.99));
+    padding:24px;
+    cursor:default;
+  }
+  .overlay.hidden{display:none;}
+
+  .overlay h2{
+    font-family:'Bangers', sans-serif;
+    font-weight:400;
+    font-size:clamp(1.8rem, 5vw, 2.6rem);
+    margin:0;
+    color:var(--ghost);
+    text-shadow:0 0 18px rgba(139,255,176,0.45);
+  }
+
+  .overlay p{margin:0; max-width:460px; color:var(--ink-dim); line-height:1.55; font-size:0.98rem;}
+
+  .stat-row{display:flex; gap:26px; font-family:'Bangers', sans-serif; font-size:1.5rem; color:var(--ember);}
+  .stat-row .label{
+    display:block;
+    font-family:'Baloo 2', sans-serif;
+    font-size:0.62rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    font-weight:700;
+  }
+
+  .key-row{display:flex; gap:8px; justify-content:center; margin-top:4px; flex-wrap:wrap;}
+
+  kbd{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    background:var(--locker-dark);
+    border:1px solid rgba(255,255,255,0.2);
+    border-bottom:3px solid rgba(0,0,0,0.4);
+    border-radius:8px;
+    padding:6px 12px;
+    font-size:0.95rem;
+    color:var(--ink);
+  }
+
+  button.play-btn{
+    font-family:'Bangers', sans-serif;
+    font-size:1.3rem;
+    letter-spacing:0.03em;
+    background:linear-gradient(180deg, var(--ember) 0%, var(--ember-dark) 100%);
+    color:#2a1608;
+    border:none;
+    border-radius:12px;
+    padding:12px 32px;
+    cursor:pointer;
+    box-shadow:0 6px 0 #8a3f14, 0 10px 22px -8px rgba(255,140,66,0.55);
+    transition:transform 0.08s ease;
+  }
+  button.play-btn:active{transform:translateY(4px); box-shadow:0 2px 0 #8a3f14;}
+  button.play-btn:focus-visible{outline:3px solid var(--ghost); outline-offset:3px;}
+
+  .legend{
+    width:min(960px, 96vw);
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));
+    gap:12px;
+  }
+
+  .legend-card{
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:14px;
+    padding:14px 16px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+  }
+
+  .legend-icon{
+    width:38px; height:38px;
+    border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem;
+    flex-shrink:0;
+  }
+  .legend-icon.move{background:rgba(184,175,212,0.12); box-shadow:inset 0 0 0 1px rgba(184,175,212,0.3);}
+  .legend-icon.good{background:rgba(139,255,176,0.14); box-shadow:inset 0 0 0 1px rgba(139,255,176,0.36);}
+  .legend-icon.gold{background:rgba(255,209,102,0.16); box-shadow:inset 0 0 0 1px rgba(255,209,102,0.45);}
+  .legend-icon.bad{background:rgba(255,107,107,0.14); box-shadow:inset 0 0 0 1px rgba(255,107,107,0.36);}
+
+  .legend-card h3{margin:0 0 2px; font-size:0.95rem; color:var(--ink);}
+  .legend-card p{margin:0; font-size:0.85rem; color:var(--ink-dim); line-height:1.4;}
+
+  footer{color:var(--ink-dim); font-size:0.8rem; text-align:center; max-width:580px; opacity:0.72;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <p class="eyebrow">Prototype · gemaakt voor Milan</p>
+  <h1>GRIEZELBALLONNEN</h1>
+  <p>Het is nacht op school en het licht doet het niet. Met alleen je zaklamp loop je door de gangen — loop met <strong>WASD</strong>, kijk met je <strong>muis</strong> en knal zoveel mogelijk ballonnen kapot binnen 60 seconden.</p>
+</div>
+
+<div class="stage-wrap">
+  <div class="stage unlocked" id="stage">
+    <canvas id="game" width="880" height="540" aria-label="Griezelballonnen first-person spel"></canvas>
+
+    <div class="hud">
+      <div class="hud-panel">
+        <span class="hud-label">Score</span>
+        <span class="hud-value" id="score-value">0</span>
+      </div>
+      <div class="hud-panel right">
+        <span class="hud-label">Combo</span>
+        <span class="hud-value" id="combo-value">x1</span>
+      </div>
+    </div>
+    <div class="hud-panel timer-panel">
+      <span class="hud-label">Tijd</span>
+      <span class="hud-value" id="timer-value">60</span>
+    </div>
+
+    <div class="overlay" id="start-overlay">
+      <h2>Durf jij de gangen in?</h2>
+      <p>Je muis wordt vastgezet zodat je vrij rond kunt kijken, net als in een echte shooter. <strong>Esc</strong> pauzeert, <strong>M</strong> zet het geluid uit.</p>
+      <div class="key-row">
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
+        <kbd style="margin-left:10px;">Muis = rondkijken</kbd>
+        <kbd>Klik = schieten</kbd>
+      </div>
+      <button class="play-btn" id="start-btn">Start spel</button>
+    </div>
+
+    <div class="overlay hidden" id="pause-overlay">
+      <h2>Pauze</h2>
+      <p>Je muis is losgelaten. Klik op de knop om weer verder te spelen.</p>
+      <button class="play-btn" id="resume-btn">Verder spelen</button>
+    </div>
+
+    <div class="overlay hidden" id="gameover-overlay">
+      <h2>Tijd om!</h2>
+      <div class="stat-row">
+        <div><span class="label">Score</span><span id="final-score">0</span></div>
+        <div><span class="label">Ballonnen</span><span id="final-pops">0</span></div>
+        <div><span class="label">Record</span><span id="best-score">0</span></div>
+      </div>
+      <button class="play-btn" id="restart-btn">Nog een keer</button>
+    </div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-card">
+    <div class="legend-icon move">🕹️</div>
+    <div><h3>Bewegen &amp; richten</h3><p>W/S vooruit en achteruit, A/D zijwaarts. Muis om rond te kijken, ook omhoog en omlaag</p></div>
+  </div>
+  <div class="legend-card">
+    <div class="legend-icon good">🎈</div>
+    <div><h3>Gewone ballon</h3><p>+10 punten × je combo (tot x8 als je blijft raken)</p></div>
+  </div>
+  <div class="legend-card">
+    <div class="legend-icon gold">✨</div>
+    <div><h3>Gouden ballon</h3><p>Zeldzaam, stijgt snel omhoog — maar +50 punten waard</p></div>
+  </div>
+  <div class="legend-card">
+    <div class="legend-icon bad">☠️</div>
+    <div><h3>Stinkballon</h3><p>Niet op schieten! Kost 15 punten en je combo gaat naar 0</p></div>
+  </div>
+</div>
+
+<footer>Raycasting-engine met echte texturen, zaklampverlichting, afstandsmist en filmkorrel. De beeldresolutie past zich automatisch aan de snelheid van je computer aan.</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  // =======================================================================
+  //  OPZET
+  // =======================================================================
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const stage = document.getElementById('stage');
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const scoreValueEl = document.getElementById('score-value');
+  const comboValueEl = document.getElementById('combo-value');
+  const timerValueEl = document.getElementById('timer-value');
+  const startOverlay = document.getElementById('start-overlay');
+  const pauseOverlay = document.getElementById('pause-overlay');
+  const gameoverOverlay = document.getElementById('gameover-overlay');
+  const finalScoreEl = document.getElementById('final-score');
+  const finalPopsEl = document.getElementById('final-pops');
+  const bestScoreEl = document.getElementById('best-score');
+
+  let bestScore = 0;
+  try{ bestScore = parseInt(localStorage.getItem('griezelballonnen-best') || '0', 10) || 0; }catch(e){}
+  bestScoreEl.textContent = bestScore;
+
+  // Kleurkanalen inpakken hangt af van de byte-volgorde van de processor
+  const endianProbe32 = new Uint32Array(1);
+  const endianProbe8 = new Uint8Array(endianProbe32.buffer);
+  endianProbe32[0] = 0x01020304;
+  const LITTLE_ENDIAN = endianProbe8[0] === 0x04;
+
+  function pack(r, g, b){
+    return LITTLE_ENDIAN
+      ? (255 << 24) | (b << 16) | (g << 8) | r
+      : (r << 24) | (g << 16) | (b << 8) | 255;
+  }
+
+  // =======================================================================
+  //  PROCEDURELE TEXTUREN
+  //  Alles wordt bij het laden één keer getekend en daarna als ruwe
+  //  pixeldata bewaard, zodat de renderer er snel uit kan samplen.
+  // =======================================================================
+  const TEX = 64, TEX_MASK = TEX - 1;
+
+  function bakeTexture(paint){
+    const c = document.createElement('canvas');
+    c.width = TEX; c.height = TEX;
+    const g = c.getContext('2d');
+    paint(g, TEX);
+    const px = g.getImageData(0, 0, TEX, TEX).data;
+    const out = new Uint8Array(TEX*TEX*3);
+    for(let i=0, o=0; i<px.length; i+=4, o+=3){
+      out[o] = px[i]; out[o+1] = px[i+1]; out[o+2] = px[i+2];
+    }
+    return out;
+  }
+
+  function noiseOverlay(g, n, amount, alpha){
+    for(let i=0; i<n; i++){
+      const v = (Math.random()*2 - 1) * amount;
+      g.fillStyle = v > 0 ? 'rgba(255,255,255,' + (alpha*v) + ')'
+                          : 'rgba(0,0,0,' + (alpha*-v) + ')';
+      g.fillRect(Math.random()*TEX | 0, Math.random()*TEX | 0, 1, 1);
+    }
+  }
+
+  // Lockerkasten: geborsteld staal, naden, ventilatiesleuven, greep
+  const texLocker = bakeTexture((g) => {
+    const grad = g.createLinearGradient(0, 0, 0, TEX);
+    grad.addColorStop(0, '#4a6f8f');
+    grad.addColorStop(0.45, '#3d5f7c');
+    grad.addColorStop(1, '#2c465e');
+    g.fillStyle = grad; g.fillRect(0, 0, TEX, TEX);
+
+    // geborsteld metaal: horizontale streepjes
+    for(let y=0; y<TEX; y++){
+      const v = (Math.random()*2 - 1) * 0.05;
+      g.fillStyle = v > 0 ? 'rgba(255,255,255,' + v + ')' : 'rgba(0,0,0,' + -v + ')';
+      g.fillRect(0, y, TEX, 1);
+    }
+
+    // twee kastdeuren naast elkaar, met naad ertussen
+    g.fillStyle = 'rgba(0,0,0,0.55)'; g.fillRect(31, 0, 2, TEX);
+    g.fillStyle = 'rgba(255,255,255,0.10)'; g.fillRect(33, 0, 1, TEX);
+    g.fillStyle = 'rgba(0,0,0,0.4)'; g.fillRect(0, 0, 1, TEX);
+    g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, 0, TEX, 2);
+    g.fillRect(0, TEX-3, TEX, 3);
+
+    for(const dx of [0, 32]){
+      // ventilatiesleuven bovenin
+      for(let i=0; i<4; i++){
+        g.fillStyle = 'rgba(0,0,0,0.5)';
+        g.fillRect(dx+8, 8 + i*4, 16, 2);
+        g.fillStyle = 'rgba(255,255,255,0.09)';
+        g.fillRect(dx+8, 10 + i*4, 16, 1);
+      }
+      // greep
+      g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillRect(dx+20, 33, 5, 11);
+      g.fillStyle = '#9fb4c6'; g.fillRect(dx+21, 34, 3, 9);
+      g.fillStyle = 'rgba(255,255,255,0.5)'; g.fillRect(dx+21, 34, 1, 9);
+      // slotje
+      g.fillStyle = 'rgba(0,0,0,0.4)'; g.fillRect(dx+21, 48, 3, 3);
+    }
+
+    // deuken en krassen
+    for(let i=0; i<7; i++){
+      g.strokeStyle = 'rgba(0,0,0,0.16)'; g.lineWidth = 1;
+      const x = Math.random()*TEX, y = Math.random()*TEX;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.random()*8-4, y + Math.random()*8-4); g.stroke();
+    }
+    noiseOverlay(g, 900, 1, 0.09);
+  });
+
+  // Muur: geschilderd stucwerk met lambrisering en vuile plinten
+  const texWall = bakeTexture((g) => {
+    g.fillStyle = '#4a4364'; g.fillRect(0, 0, TEX, TEX);
+    // onderste helft donkerder (lambrisering)
+    g.fillStyle = '#3a3450'; g.fillRect(0, 38, TEX, TEX-38);
+    // stootlijst
+    g.fillStyle = '#2b2740'; g.fillRect(0, 36, TEX, 3);
+    g.fillStyle = 'rgba(255,255,255,0.12)'; g.fillRect(0, 35, TEX, 1);
+    // plint
+    g.fillStyle = '#221f33'; g.fillRect(0, TEX-5, TEX, 5);
+
+    // vlekken en vochtranden
+    for(let i=0; i<10; i++){
+      const x = Math.random()*TEX, y = Math.random()*36, r = 3 + Math.random()*9;
+      const sm = g.createRadialGradient(x, y, 0, x, y, r);
+      sm.addColorStop(0, 'rgba(0,0,0,0.16)');
+      sm.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = sm;
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI*2); g.fill();
+    }
+    // verticale vuilstrepen
+    for(let i=0; i<5; i++){
+      const x = Math.random()*TEX;
+      g.fillStyle = 'rgba(0,0,0,0.10)';
+      g.fillRect(x, 0, 1 + Math.random()*2, 20 + Math.random()*16);
+    }
+    noiseOverlay(g, 1400, 1, 0.10);
+  });
+
+  // Klasdeur: houtnerf, panelen, raampje, klink
+  const texDoor = bakeTexture((g) => {
+    const grad = g.createLinearGradient(0, 0, TEX, 0);
+    grad.addColorStop(0, '#6b4326');
+    grad.addColorStop(0.5, '#8a5730');
+    grad.addColorStop(1, '#5e3a21');
+    g.fillStyle = grad; g.fillRect(0, 0, TEX, TEX);
+
+    // houtnerf
+    for(let x=0; x<TEX; x++){
+      const v = Math.sin(x*0.8) * 0.04 + (Math.random()*2-1)*0.05;
+      g.fillStyle = v > 0 ? 'rgba(255,255,255,' + v + ')' : 'rgba(0,0,0,' + -v + ')';
+      g.fillRect(x, 0, 1, TEX);
+    }
+    // deurpost
+    g.fillStyle = 'rgba(0,0,0,0.55)';
+    g.fillRect(0, 0, 4, TEX); g.fillRect(TEX-4, 0, 4, TEX); g.fillRect(0, 0, TEX, 3);
+
+    // raampje met donker glas
+    g.fillStyle = '#2b1c11'; g.fillRect(16, 8, 32, 20);
+    const glass = g.createLinearGradient(18, 10, 46, 26);
+    glass.addColorStop(0, '#182233');
+    glass.addColorStop(0.5, '#26364d');
+    glass.addColorStop(1, '#141c29');
+    g.fillStyle = glass; g.fillRect(18, 10, 28, 16);
+    g.fillStyle = 'rgba(255,255,255,0.13)';
+    g.beginPath(); g.moveTo(18, 24); g.lineTo(30, 10); g.lineTo(36, 10); g.lineTo(20, 26); g.closePath(); g.fill();
+
+    // onderpaneel
+    g.fillStyle = 'rgba(0,0,0,0.32)'; g.fillRect(12, 36, 40, 22);
+    g.fillStyle = 'rgba(255,255,255,0.07)'; g.fillRect(14, 38, 36, 18);
+
+    // klink
+    g.fillStyle = '#0f0c08'; g.fillRect(48, 31, 8, 4);
+    g.fillStyle = '#c9b184'; g.fillRect(48, 32, 7, 2);
+    noiseOverlay(g, 700, 1, 0.07);
+  });
+
+  // Vloer: linoleum tegels met voegen en slijtage
+  const texFloor = bakeTexture((g) => {
+    g.fillStyle = '#3b3550'; g.fillRect(0, 0, TEX, TEX);
+    // 2x2 tegels, licht wisselende tint
+    const tints = ['#40395a', '#37314c', '#3d3655', '#342f47'];
+    for(let ty=0; ty<2; ty++){
+      for(let tx=0; tx<2; tx++){
+        g.fillStyle = tints[ty*2+tx];
+        g.fillRect(tx*32 + 1, ty*32 + 1, 30, 30);
+      }
+    }
+    // voegen
+    g.fillStyle = '#242038';
+    g.fillRect(0, 0, TEX, 2); g.fillRect(0, 31, TEX, 2);
+    g.fillRect(0, 0, 2, TEX); g.fillRect(31, 0, 2, TEX);
+    // spikkels in het linoleum
+    for(let i=0; i<600; i++){
+      const v = Math.random();
+      g.fillStyle = v > 0.55 ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.10)';
+      g.fillRect(Math.random()*TEX|0, Math.random()*TEX|0, 1, 1);
+    }
+    // krassen van schoenen
+    for(let i=0; i<9; i++){
+      g.strokeStyle = 'rgba(255,255,255,0.06)'; g.lineWidth = 1;
+      const x = Math.random()*TEX, y = Math.random()*TEX;
+      g.beginPath(); g.moveTo(x, y);
+      g.quadraticCurveTo(x+6, y+2, x + Math.random()*16-8, y + Math.random()*6-3);
+      g.stroke();
+    }
+  });
+
+  // Plafond: systeemplafondplaten met raster
+  const texCeiling = bakeTexture((g) => {
+    g.fillStyle = '#26223a'; g.fillRect(0, 0, TEX, TEX);
+    g.fillStyle = '#2c2842'; g.fillRect(2, 2, 28, 28); g.fillRect(34, 2, 28, 28);
+    g.fillRect(2, 34, 28, 28); g.fillRect(34, 34, 28, 28);
+    // rasterprofielen
+    g.fillStyle = '#191627';
+    g.fillRect(0, 0, TEX, 2); g.fillRect(0, 31, TEX, 2);
+    g.fillRect(0, 0, 2, TEX); g.fillRect(31, 0, 2, TEX);
+    // geperforeerde platen
+    for(let i=0; i<380; i++){
+      g.fillStyle = 'rgba(0,0,0,0.16)';
+      g.fillRect(Math.random()*TEX|0, Math.random()*TEX|0, 1, 1);
+    }
+    noiseOverlay(g, 500, 1, 0.05);
+  });
+
+  function texFor(cell){
+    if(cell === '1') return texLocker;
+    if(cell === '2') return texDoor;
+    return texWall;
+  }
+
+  // =======================================================================
+  //  BALLONSPRITES
+  //  Elke ballon wordt één keer op ware grootte getekend met glans,
+  //  randlicht en schaduw, en daarna als pixeldata bewaard.
+  // =======================================================================
+  const SPR_W = 96, SPR_H = 132;
+
+  function bakeBalloon(kind, color){
+    const c = document.createElement('canvas');
+    c.width = SPR_W; c.height = SPR_H;
+    const g = c.getContext('2d');
+    const cx = SPR_W/2, cy = 52, rx = 34, ry = 42;
+
+    // touwtje
+    g.strokeStyle = 'rgba(210,205,225,0.5)';
+    g.lineWidth = 1.6;
+    g.beginPath();
+    g.moveTo(cx, cy + ry + 6);
+    g.bezierCurveTo(cx + 10, cy + ry + 24, cx - 8, cy + ry + 44, cx + 3, cy + ry + 66);
+    g.stroke();
+
+    // knoopje
+    g.fillStyle = shadeHex(color, kind === 'bad' ? 0.7 : 0.72);
+    g.beginPath();
+    g.moveTo(cx - 6, cy + ry - 2); g.lineTo(cx + 6, cy + ry - 2); g.lineTo(cx, cy + ry + 8);
+    g.closePath(); g.fill();
+
+    // ballonlichaam met bolvormig verloop
+    const body = g.createRadialGradient(cx - rx*0.35, cy - ry*0.4, 2, cx, cy, rx*1.5);
+    if(kind === 'gold'){
+      body.addColorStop(0, '#fff6d6');
+      body.addColorStop(0.28, '#ffd166');
+      body.addColorStop(0.7, '#c99a26');
+      body.addColorStop(1, '#6b4f0f');
+    } else if(kind === 'bad'){
+      body.addColorStop(0, '#7a7a6c');
+      body.addColorStop(0.35, '#4a4a42');
+      body.addColorStop(1, '#191913');
+    } else {
+      body.addColorStop(0, shadeHex(color, 1.55));
+      body.addColorStop(0.32, color);
+      body.addColorStop(0.78, shadeHex(color, 0.55));
+      body.addColorStop(1, shadeHex(color, 0.24));
+    }
+    g.fillStyle = body;
+    g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); g.fill();
+
+    // randlicht: dunne lichte lijn langs de onderrand
+    g.save();
+    g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); g.clip();
+    const rim = g.createLinearGradient(cx, cy + ry*0.2, cx, cy + ry);
+    rim.addColorStop(0, 'rgba(255,255,255,0)');
+    rim.addColorStop(1, kind === 'bad' ? 'rgba(150,170,140,0.30)' : 'rgba(255,255,255,0.32)');
+    g.fillStyle = rim;
+    g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); g.fill();
+    g.restore();
+
+    // grote zachte glans
+    const sheen = g.createRadialGradient(cx - rx*0.4, cy - ry*0.45, 1, cx - rx*0.4, cy - ry*0.45, rx*0.75);
+    sheen.addColorStop(0, 'rgba(255,255,255,' + (kind === 'bad' ? 0.16 : 0.5) + ')');
+    sheen.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = sheen;
+    g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); g.fill();
+
+    // scherpe hooglicht-stip
+    g.fillStyle = 'rgba(255,255,255,' + (kind === 'bad' ? 0.35 : 0.92) + ')';
+    g.beginPath(); g.ellipse(cx - rx*0.42, cy - ry*0.5, rx*0.11, ry*0.16, -0.5, 0, Math.PI*2); g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.35)';
+    g.beginPath(); g.ellipse(cx - rx*0.18, cy - ry*0.62, rx*0.06, ry*0.06, 0, 0, Math.PI*2); g.fill();
+
+    if(kind === 'bad'){
+      // gezichtje op de stinkballon
+      g.strokeStyle = 'rgba(230,228,240,0.9)';
+      g.lineWidth = 3.2; g.lineCap = 'round';
+      g.beginPath();
+      g.moveTo(cx-19, cy-12); g.lineTo(cx-7, cy+1);
+      g.moveTo(cx-7, cy-12);  g.lineTo(cx-19, cy+1);
+      g.moveTo(cx+19, cy-12); g.lineTo(cx+7, cy+1);
+      g.moveTo(cx+7, cy-12);  g.lineTo(cx+19, cy+1);
+      g.stroke();
+      g.beginPath(); g.moveTo(cx-10, cy+20); g.quadraticCurveTo(cx, cy+11, cx+10, cy+20); g.stroke();
+      // groene walm erboven
+      for(let i=0; i<3; i++){
+        const fx = cx - 16 + i*16, fy = cy - ry - 6 - i*5;
+        const fume = g.createRadialGradient(fx, fy, 0, fx, fy, 11);
+        fume.addColorStop(0, 'rgba(150,205,120,0.42)');
+        fume.addColorStop(1, 'rgba(150,205,120,0)');
+        g.fillStyle = fume;
+        g.beginPath(); g.arc(fx, fy, 11, 0, Math.PI*2); g.fill();
+      }
+    } else if(kind === 'gold'){
+      // gouden glinstering
+      g.strokeStyle = 'rgba(255,255,255,0.85)';
+      g.lineWidth = 2;
+      for(const [gx, gy, gs] of [[cx+14, cy-18, 7], [cx-20, cy+16, 5], [cx+8, cy+24, 4]]){
+        g.beginPath();
+        g.moveTo(gx-gs, gy); g.lineTo(gx+gs, gy);
+        g.moveTo(gx, gy-gs); g.lineTo(gx, gy+gs);
+        g.stroke();
+      }
+    }
+
+    const px = g.getImageData(0, 0, SPR_W, SPR_H).data;
+    return {w: SPR_W, h: SPR_H, data: px};
+  }
+
+  function shadeHex(hex, f){
+    const n = parseInt(hex.slice(1), 16);
+    const r = Math.min(255, ((n >> 16) & 255) * f) | 0;
+    const g = Math.min(255, ((n >> 8) & 255) * f) | 0;
+    const b = Math.min(255, (n & 255) * f) | 0;
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+
+  const COLORS = ['#e2453f', '#3f7fd6', '#e8c04a', '#8f57c9', '#38b9a4', '#e06aa2'];
+  const SPRITES = {};
+  for(const c of COLORS) SPRITES[c] = bakeBalloon('normal', c);
+  SPRITES.gold = bakeBalloon('gold', '#ffd166');
+  SPRITES.bad = bakeBalloon('bad', '#4a4a42');
+
+  // =======================================================================
+  //  PLATTEGROND
+  //  '.' = gang, '#' = muur, '1' = lockerkast, '2' = klasdeur
+  // =======================================================================
+  const MAP = [
+    "####################",
+    "#........##........#",
+    "#.111.11.##.11.111.#",
+    "#..................#",
+    "#..................#",
+    "#.####.######.####.#",
+    "#.#..#.#....#.#..#.#",
+    "#.#..2.2....2.2..#.#",
+    "#.####.######.####.#",
+    "#..................#",
+    "#..................#",
+    "#.111.11.##.11.111.#",
+    "#........##........#",
+    "#.####.######.####.#",
+    "#.#..#.#....#.#..#.#",
+    "#.#..2.#....#.2..#.#",
+    "####################"
+  ];
+  const MAP_W = MAP[0].length, MAP_H = MAP.length;
+
+  // Snelle celopzoeking als platte byte-array
+  const grid = new Uint8Array(MAP_W * MAP_H);
+  const CELL_CHARS = ['.', '#', '1', '2'];
+  for(let y=0; y<MAP_H; y++){
+    for(let x=0; x<MAP_W; x++){
+      grid[y*MAP_W + x] = CELL_CHARS.indexOf(MAP[y][x]);
+    }
+  }
+  function cellCode(mx, my){
+    if(mx < 0 || my < 0 || mx >= MAP_W || my >= MAP_H) return 1;
+    return grid[my*MAP_W + mx];
+  }
+  function blocked(x, y){
+    return cellCode(x | 0, y | 0) !== 0;
+  }
+
+  const openCells = [];
+  for(let y=0; y<MAP_H; y++){
+    for(let x=0; x<MAP_W; x++){
+      if(MAP[y][x] === '.') openCells.push({x: x + 0.5, y: y + 0.5});
+    }
+  }
+
+  // =======================================================================
+  //  CAMERA & BESTURING
+  // =======================================================================
+  const cam = {x: 10.5, y: 10.5, dirX: 0, dirY: -1, planeX: 0.68, planeY: 0};
+  const SPAWN = {x: 10.5, y: 10.5, dirX: 0, dirY: -1, planeX: 0.68, planeY: 0};
+
+  function rotate(a){
+    const cos = Math.cos(a), sin = Math.sin(a);
+    const odx = cam.dirX, opx = cam.planeX;
+    cam.dirX = odx*cos - cam.dirY*sin;
+    cam.dirY = odx*sin + cam.dirY*cos;
+    cam.planeX = opx*cos - cam.planeY*sin;
+    cam.planeY = opx*sin + cam.planeY*cos;
+  }
+
+  const MOVE_SPEED = 2.7;
+  const TURN_SPEED = 2.2;
+  const MOUSE_SENS = 0.0021;
+  const PITCH_SENS = 0.0019;     // als fractie van de schermhoogte
+  const PITCH_KEYS = 0.55;
+  const PITCH_MAX = 0.42;
+  const PLAYER_R = 0.24;
+
+  let pitchN = 0;                // 0 = recht vooruit, positief = omhoog
+  function clampPitch(){ pitchN = Math.max(-PITCH_MAX, Math.min(PITCH_MAX, pitchN)); }
+
+  // =======================================================================
+  //  SPELSTATUS
+  // =======================================================================
+  const keys = {};
+  let running = false, paused = false, muted = false;
+  let score = 0, combo = 1, pops = 0, timeLeft = 60;
+  let spawnTimer = 0, spawnInterval = 1.0;
+  let lastShot = 0;
+  let bobPhase = 0, swayX = 0, swayY = 0, roll = 0;
+  let recoil = 0, muzzle = 0, hitFlash = 0, missFlash = 0;
+  let stepAccum = 0;
+
+  const balloons = [];
+  const particles = [];
+  const floats = [];
+
+  function resetGame(){
+    cam.x = SPAWN.x; cam.y = SPAWN.y;
+    cam.dirX = SPAWN.dirX; cam.dirY = SPAWN.dirY;
+    cam.planeX = SPAWN.planeX; cam.planeY = SPAWN.planeY;
+    pitchN = 0; bobPhase = 0; roll = 0;
+    balloons.length = 0; particles.length = 0; floats.length = 0;
+    score = 0; combo = 1; pops = 0; timeLeft = 60;
+    spawnTimer = 0; spawnInterval = 1.0;
+    recoil = 0; muzzle = 0; hitFlash = 0; missFlash = 0;
+    for(let i=0; i<5; i++) spawnBalloon();
+    updateHud();
+  }
+
+  function updateHud(){
+    scoreValueEl.textContent = score;
+    comboValueEl.textContent = 'x' + combo;
+    const secs = Math.max(0, Math.ceil(timeLeft));
+    timerValueEl.textContent = secs;
+    timerValueEl.classList.toggle('low', secs <= 10);
+  }
+
+  function spawnBalloon(){
+    const roll2 = Math.random();
+    let kind = 'normal';
+    if(roll2 < 0.10) kind = 'gold';
+    else if(roll2 < 0.26) kind = 'bad';
+
+    let cell = null;
+    for(let tries=0; tries<24; tries++){
+      const c = openCells[Math.floor(Math.random()*openCells.length)];
+      if(Math.hypot(c.x - cam.x, c.y - cam.y) > 2.2){ cell = c; break; }
+    }
+    if(!cell) cell = openCells[Math.floor(Math.random()*openCells.length)];
+
+    const a = Math.random()*Math.PI*2;
+    const drift = 0.10 + Math.random()*0.16;
+    const color = kind === 'normal' ? COLORS[Math.floor(Math.random()*COLORS.length)]
+                : (kind === 'gold' ? 'gold' : 'bad');
+    balloons.push({
+      x: cell.x + (Math.random()-0.5)*0.5,
+      y: cell.y + (Math.random()-0.5)*0.5,
+      z: 0.10,
+      r: kind === 'gold' ? 0.15 : 0.19,
+      kind,
+      spriteKey: color,
+      miniColor: kind === 'normal' ? color : (kind === 'gold' ? '#ffd166' : '#6b6b5c'),
+      rise: (kind === 'gold' ? 0.115 : 0.060) + Math.random()*0.03,
+      vx: Math.cos(a)*drift,
+      vy: Math.sin(a)*drift,
+      wob: Math.random()*Math.PI*2
+    });
+  }
+
+  // =======================================================================
+  //  GELUID
+  // =======================================================================
+  let audioCtx = null, noiseBuf = null, master = null, ambientOn = false;
+
+  function ensureAudio(){
+    if(audioCtx) return audioCtx;
+    try{
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const len = audioCtx.sampleRate * 1.0;
+      noiseBuf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+      const ch = noiseBuf.getChannelData(0);
+      for(let i=0; i<len; i++) ch[i] = Math.random()*2 - 1;
+      // Alles loopt via één regelaar, zodat M in één keer alles dempt
+      master = audioCtx.createGain();
+      master.gain.value = muted ? 0 : 1;
+      master.connect(audioCtx.destination);
+    }catch(e){ audioCtx = null; }
+    return audioCtx;
+  }
+
+  function setMuted(on){
+    muted = on;
+    if(master && audioCtx){
+      master.gain.setTargetAtTime(muted ? 0 : 1, audioCtx.currentTime, 0.02);
+    }
+  }
+
+  function noiseBurst(dur, filterType, freq, vol, sweepTo){
+    const ac = ensureAudio();
+    if(!ac) return;
+    const t = ac.currentTime;
+    const src = ac.createBufferSource();
+    src.buffer = noiseBuf;
+    src.loop = true;
+    const flt = ac.createBiquadFilter();
+    flt.type = filterType;
+    flt.frequency.setValueAtTime(freq, t);
+    if(sweepTo) flt.frequency.exponentialRampToValueAtTime(sweepTo, t + dur);
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+    src.connect(flt); flt.connect(gain); gain.connect(master);
+    src.start(t); src.stop(t + dur + 0.02);
+  }
+
+  function tone(type, f0, f1, dur, vol){
+    const ac = ensureAudio();
+    if(!ac) return;
+    const t = ac.currentTime;
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(f0, t);
+    osc.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+    osc.connect(gain); gain.connect(master);
+    osc.start(t); osc.stop(t + dur + 0.02);
+  }
+
+  function startAmbient(){
+    const ac = ensureAudio();
+    if(!ac || ambientOn) return;
+    ambientOn = true;
+    // lage bromtoon van de verwarmingsketel
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = 'sine'; osc.frequency.value = 52;
+    gain.gain.value = 0.035;
+    osc.connect(gain); gain.connect(master);
+    osc.start();
+    // ruisende ventilatie
+    const src = ac.createBufferSource();
+    src.buffer = noiseBuf; src.loop = true;
+    const flt = ac.createBiquadFilter();
+    flt.type = 'lowpass'; flt.frequency.value = 260;
+    const ng = ac.createGain(); ng.gain.value = 0.018;
+    src.connect(flt); flt.connect(ng); ng.connect(master);
+    src.start();
+  }
+
+  const sfx = {
+    pop(){ noiseBurst(0.11, 'bandpass', 1900, 0.42, 420); tone('triangle', 520, 130, 0.08, 0.10); },
+    gold(){ noiseBurst(0.09, 'bandpass', 2600, 0.30, 900); tone('square', 900, 1900, 0.16, 0.09); },
+    bad(){ noiseBurst(0.4, 'lowpass', 700, 0.30, 110); tone('sawtooth', 190, 62, 0.34, 0.11); },
+    shot(){ noiseBurst(0.09, 'highpass', 1100, 0.16); tone('square', 280, 95, 0.07, 0.07); },
+    step(){ noiseBurst(0.07, 'lowpass', 320, 0.13, 130); }
+  };
+
+  // =======================================================================
+  //  INVOER
+  // =======================================================================
+  window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    keys[k] = true;
+    if(k === ' ' || k === 'arrowup' || k === 'arrowdown'){ e.preventDefault(); }
+    if(k === ' ') shoot();
+    if(k === 'm') setMuted(!muted);
+  });
+  window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+  document.addEventListener('mousemove', e => {
+    if(document.pointerLockElement === canvas && running && !paused){
+      rotate(e.movementX * MOUSE_SENS);
+      pitchN -= e.movementY * PITCH_SENS;
+      clampPitch();
+    }
+  });
+
+  canvas.addEventListener('mousedown', e => {
+    e.preventDefault();
+    if(document.pointerLockElement !== canvas){
+      if(running && !paused) requestLock();
+      return;
+    }
+    shoot();
+  });
+
+  function requestLock(){
+    const p = canvas.requestPointerLock();
+    if(p && typeof p.catch === 'function') p.catch(()=>{});
+  }
+
+  document.addEventListener('pointerlockchange', () => {
+    const locked = document.pointerLockElement === canvas;
+    stage.classList.toggle('unlocked', !locked);
+    if(!locked && running && !paused){
+      paused = true;
+      pauseOverlay.classList.remove('hidden');
+    }
+  });
+
+  function startRound(){
+    startOverlay.classList.add('hidden');
+    gameoverOverlay.classList.add('hidden');
+    pauseOverlay.classList.add('hidden');
+    ensureAudio();
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    startAmbient();
+    resetGame();
+    running = true; paused = false;
+    requestLock();
+  }
+  document.getElementById('start-btn').addEventListener('click', startRound);
+  document.getElementById('restart-btn').addEventListener('click', startRound);
+  document.getElementById('resume-btn').addEventListener('click', () => {
+    paused = false;
+    pauseOverlay.classList.add('hidden');
+    requestLock();
+  });
+
+  function endGame(){
+    running = false; paused = false;
+    if(document.pointerLockElement === canvas) document.exitPointerLock();
+    if(score > bestScore){
+      bestScore = score;
+      try{ localStorage.setItem('griezelballonnen-best', String(bestScore)); }catch(e){}
+    }
+    finalScoreEl.textContent = score;
+    finalPopsEl.textContent = pops;
+    bestScoreEl.textContent = bestScore;
+    gameoverOverlay.classList.remove('hidden');
+  }
+
+  // =======================================================================
+  //  RENDERBUFFER (past zich aan de snelheid van de computer aan)
+  // =======================================================================
+  const fbCanvas = document.createElement('canvas');
+  const fbCtx = fbCanvas.getContext('2d');
+  let RW = 0, RH = 0, frame = null, fb32 = null, fb8 = null;
+  let zbuf = null, beam = null, colRayX0 = null, colRayY0 = null;
+  let renderScale = 0.72;
+
+  function setRenderScale(s){
+    renderScale = Math.max(0.42, Math.min(0.9, s));
+    RW = Math.max(160, Math.round(W * renderScale));
+    RH = Math.max(100, Math.round(H * renderScale));
+    fbCanvas.width = RW; fbCanvas.height = RH;
+    frame = fbCtx.createImageData(RW, RH);
+    fb32 = new Uint32Array(frame.data.buffer);
+    fb8 = frame.data;
+    zbuf = new Float32Array(RW);
+    zbuf.fill(1e9);   // tot het eerste beeld is er nog geen muur bekend
+
+    // Zaklampbundel: fel in het midden, snel donker naar de randen
+    beam = new Float32Array(RW);
+    for(let x=0; x<RW; x++){
+      const cxn = Math.abs(2*x/RW - 1);
+      const t = Math.max(0, 1 - cxn*1.05);
+      beam[x] = t*t*t;
+    }
+  }
+  setRenderScale(0.72);
+
+  const AMBIENT = 0.085;          // maanlicht dat door de ramen valt
+  const BEAM_POWER = 2.9;         // hoe fel de zaklamp is
+
+  // =======================================================================
+  //  SCHIETEN
+  // =======================================================================
+  function projectBalloon(b){
+    const sx = b.x - cam.x, sy = b.y - cam.y;
+    const invDet = 1 / (cam.planeX*cam.dirY - cam.dirX*cam.planeY);
+    const tX = invDet * (cam.dirY*sx - cam.dirX*sy);
+    const tY = invDet * (-cam.planeY*sx + cam.planeX*sy);
+    if(tY <= 0.12) return null;
+    const scale = RH / tY;
+    return {
+      dist: tY,
+      screenX: (RW/2) * (1 + tX/tY),
+      centerY: RH*(0.5 + pitchN) + (0.5 - b.z) * scale,
+      rPix: b.r * scale
+    };
+  }
+
+  function shoot(){
+    if(!running || paused) return;
+    const now = performance.now();
+    if(now - lastShot < 200) return;
+    lastShot = now;
+    recoil = 1; muzzle = 1;
+    sfx.shot();
+
+    let best = null;
+    for(const b of balloons){
+      const p = projectBalloon(b);
+      if(!p) continue;
+      const dx = p.screenX - RW/2, dy = p.centerY - RH/2;
+      const rx = p.rPix * 0.80 * 1.20, ry = p.rPix * 1.20;
+      if((dx*dx)/(rx*rx) + (dy*dy)/(ry*ry) > 1) continue;
+      const col = Math.min(RW-1, Math.max(0, Math.round(p.screenX)));
+      if(zbuf[col] <= p.dist) continue;      // zit achter een muur
+      if(!best || p.dist < best.p.dist) best = {b, p};
+    }
+
+    if(!best){ missFlash = 1; return; }
+    popBalloon(best.b, best.p);
+  }
+
+  function popBalloon(b, p){
+    const idx = balloons.indexOf(b);
+    if(idx >= 0) balloons.splice(idx, 1);
+
+    // Schermpositie omrekenen naar volle resolutie voor de effecten
+    const sx = p.screenX / RW * W, sy = p.centerY / RH * H;
+
+    if(b.kind === 'bad'){
+      score = Math.max(0, score - 15);
+      combo = 1;
+      missFlash = 1;
+      addFloat(sx, sy, '-15', '#ff6b6b');
+      spawnParticles(sx, sy, '#7d8a6a', 16);
+      sfx.bad();
+    } else {
+      const gained = b.kind === 'gold' ? 50 : 10 * combo;
+      score += gained;
+      pops += 1;
+      hitFlash = 1;
+      addFloat(sx, sy, '+' + gained, b.kind === 'gold' ? '#ffd166' : '#8bffb0');
+      spawnParticles(sx, sy, b.miniColor, 22);
+      if(b.kind !== 'gold') combo = Math.min(combo + 1, 8);
+      b.kind === 'gold' ? sfx.gold() : sfx.pop();
+    }
+    updateHud();
+  }
+
+  function addFloat(x, y, text, color){
+    floats.push({x, y, text, color, life: 0, max: 0.85});
+  }
+
+  function spawnParticles(x, y, color, n){
+    if(reduceMotion) n = Math.min(n, 6);
+    for(let i=0; i<n; i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = 70 + Math.random()*220;
+      particles.push({
+        x, y,
+        vx: Math.cos(a)*sp, vy: Math.sin(a)*sp - 60,
+        rot: Math.random()*Math.PI, vrot: (Math.random()-0.5)*14,
+        life: 0, color
+      });
+    }
+  }
+
+  // =======================================================================
+  //  UPDATE
+  // =======================================================================
+  function update(dt){
+    timeLeft -= dt;
+    if(timeLeft <= 0){ timeLeft = 0; updateHud(); endGame(); return; }
+
+    if(keys['arrowleft']) rotate(-TURN_SPEED*dt);
+    if(keys['arrowright']) rotate(TURN_SPEED*dt);
+    if(keys['arrowup']) pitchN += PITCH_KEYS*dt;
+    if(keys['arrowdown']) pitchN -= PITCH_KEYS*dt;
+    if(keys['arrowup'] || keys['arrowdown']) clampPitch();
+
+    let fwd = 0, strafe = 0;
+    if(keys['w']) fwd += 1;
+    if(keys['s']) fwd -= 1;
+    if(keys['d']) strafe += 1;
+    if(keys['a']) strafe -= 1;
+
+    let moving = false;
+    if(fwd || strafe){
+      moving = true;
+      const len = Math.hypot(fwd, strafe);
+      fwd /= len; strafe /= len;
+      const planeLen = Math.hypot(cam.planeX, cam.planeY) || 1;
+      const sideX = cam.planeX/planeLen, sideY = cam.planeY/planeLen;
+      const mx = (cam.dirX*fwd + sideX*strafe) * MOVE_SPEED * dt;
+      const my = (cam.dirY*fwd + sideY*strafe) * MOVE_SPEED * dt;
+      if(!blocked(cam.x + mx + Math.sign(mx)*PLAYER_R, cam.y)) cam.x += mx;
+      if(!blocked(cam.x, cam.y + my + Math.sign(my)*PLAYER_R)) cam.y += my;
+
+      bobPhase += dt * 8.2;
+      stepAccum += dt * 8.2;
+      if(stepAccum > Math.PI){ stepAccum -= Math.PI; sfx.step(); }
+    } else {
+      bobPhase += dt * 1.4;   // rustig ademen als je stilstaat
+    }
+
+    // Loopbeweging: zijwaarts zwaaien, verticaal wippen, licht kantelen
+    const amp = reduceMotion ? 0 : (moving ? 1 : 0.3);
+    swayX = Math.sin(bobPhase) * 4.5 * amp;
+    swayY = Math.abs(Math.cos(bobPhase)) * 3.5 * amp;
+    roll = Math.sin(bobPhase) * 0.009 * amp;
+
+    spawnTimer += dt;
+    if(spawnTimer > spawnInterval){
+      spawnTimer = 0;
+      spawnBalloon();
+      spawnInterval = Math.max(0.42, spawnInterval - 0.012);
+    }
+
+    for(let i=balloons.length-1; i>=0; i--){
+      const b = balloons[i];
+      b.wob += dt * 2.0;
+      b.z += b.rise * dt;
+      if(b.z > 1.04){ balloons.splice(i, 1); continue; }
+      const nx = b.x + b.vx*dt, ny = b.y + b.vy*dt;
+      if(blocked(nx, b.y)) b.vx = -b.vx; else b.x = nx;
+      if(blocked(b.x, ny)) b.vy = -b.vy; else b.y = ny;
+    }
+
+    for(let i=particles.length-1; i>=0; i--){
+      const p = particles[i];
+      p.life += dt;
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      p.vy += 420*dt;
+      p.vx *= 0.98;
+      p.rot += p.vrot*dt;
+      if(p.life > 0.85) particles.splice(i, 1);
+    }
+    for(let i=floats.length-1; i>=0; i--){
+      const f = floats[i];
+      f.life += dt; f.y -= 36*dt;
+      if(f.life > f.max) floats.splice(i, 1);
+    }
+
+    if(recoil > 0) recoil = Math.max(0, recoil - dt*6);
+    if(muzzle > 0) muzzle = Math.max(0, muzzle - dt*13);
+    if(hitFlash > 0) hitFlash = Math.max(0, hitFlash - dt*4);
+    if(missFlash > 0) missFlash = Math.max(0, missFlash - dt*4);
+  }
+
+  // =======================================================================
+  //  RENDEREN: vloer & plafond (rij voor rij), muren (kolom voor kolom)
+  // =======================================================================
+  function renderWorld(){
+    const horizon = RH*(0.5 + pitchN);
+    const posZ = 0.5 * RH;
+    const muzzleLight = muzzle * 0.55;
+
+    const rdx0 = cam.dirX - cam.planeX, rdy0 = cam.dirY - cam.planeY;
+    const rdx1 = cam.dirX + cam.planeX, rdy1 = cam.dirY + cam.planeY;
+    const stepFacX = (rdx1 - rdx0) / RW, stepFacY = (rdy1 - rdy0) / RW;
+
+    // ---- vloer en plafond ----
+    for(let y=0; y<RH; y++){
+      const p = y - horizon;
+      if(Math.abs(p) < 0.5) continue;
+      const isFloor = p > 0;
+      const rowDist = posZ / Math.abs(p);
+      if(rowDist > 26) continue;                  // te ver: blijft zwart
+
+      const tex = isFloor ? texFloor : texCeiling;
+      const stepX = rowDist * stepFacX, stepY = rowDist * stepFacY;
+      let fx = cam.x + rowDist * rdx0;
+      let fy = cam.y + rowDist * rdy0;
+
+      const fog = 1 / (1 + rowDist*rowDist*0.075);
+      const beamFall = BEAM_POWER / (1 + rowDist*rowDist*0.30);
+      const ambRow = (AMBIENT + muzzleLight) * fog;
+      let di = y*RW;
+
+      for(let x=0; x<RW; x++){
+        const tx = ((fx - (fx | 0)) * TEX) | 0;
+        const ty = ((fy - (fy | 0)) * TEX) | 0;
+        const o = (((ty & TEX_MASK) << 6) + (tx & TEX_MASK)) * 3;
+
+        let lum = ambRow + beam[x] * beamFall * fog;
+        if(!isFloor) lum *= 0.62;                 // plafond vangt minder licht
+        if(lum > 1.5) lum = 1.5;
+
+        let r = tex[o]*lum, g = tex[o+1]*lum, b = tex[o+2]*lum;
+        if(r > 255) r = 255; if(g > 255) g = 255; if(b > 255) b = 255;
+        fb32[di++] = pack(r|0, g|0, b|0);
+
+        fx += stepX; fy += stepY;
+      }
+    }
+
+    // Rijen die te ver weg zijn hebben we overgeslagen: die op zwart zetten
+    for(let y=0; y<RH; y++){
+      const p = y - horizon;
+      if(Math.abs(p) >= 0.5 && posZ/Math.abs(p) <= 26) continue;
+      const di = y*RW;
+      fb32.fill(pack(4, 3, 9), di, di + RW);
+    }
+
+    // ---- muren ----
+    for(let x=0; x<RW; x++){
+      const cameraX = 2*x/RW - 1;
+      const rayDirX = cam.dirX + cam.planeX*cameraX;
+      const rayDirY = cam.dirY + cam.planeY*cameraX;
+
+      let mapX = cam.x | 0, mapY = cam.y | 0;
+      const deltaX = rayDirX === 0 ? 1e30 : Math.abs(1/rayDirX);
+      const deltaY = rayDirY === 0 ? 1e30 : Math.abs(1/rayDirY);
+
+      let stepX, stepY, sideDistX, sideDistY;
+      if(rayDirX < 0){ stepX = -1; sideDistX = (cam.x - mapX)*deltaX; }
+      else { stepX = 1; sideDistX = (mapX + 1 - cam.x)*deltaX; }
+      if(rayDirY < 0){ stepY = -1; sideDistY = (cam.y - mapY)*deltaY; }
+      else { stepY = 1; sideDistY = (mapY + 1 - cam.y)*deltaY; }
+
+      let side = 0, code = 1, guard = 0;
+      while(guard++ < 80){
+        if(sideDistX < sideDistY){ sideDistX += deltaX; mapX += stepX; side = 0; }
+        else { sideDistY += deltaY; mapY += stepY; side = 1; }
+        code = cellCode(mapX, mapY);
+        if(code !== 0) break;
+      }
+
+      const perpDist = side === 0 ? (sideDistX - deltaX) : (sideDistY - deltaY);
+      const dist = perpDist < 0.02 ? 0.02 : perpDist;
+      zbuf[x] = dist;
+
+      const lineH = RH / dist;
+      const dStart = horizon - lineH*0.5;
+      const dEnd = horizon + lineH*0.5;
+      const yStart = dStart < 0 ? 0 : Math.ceil(dStart);
+      const yEnd = dEnd > RH ? RH : Math.ceil(dEnd);
+      if(yEnd <= yStart) continue;
+
+      let wallX = side === 0 ? cam.y + dist*rayDirY : cam.x + dist*rayDirX;
+      wallX -= Math.floor(wallX);
+      let texX = (wallX * TEX) | 0;
+      if((side === 0 && rayDirX > 0) || (side === 1 && rayDirY < 0)) texX = TEX - texX - 1;
+      texX &= TEX_MASK;
+
+      const tex = code === 2 ? texLocker : (code === 3 ? texDoor : texWall);
+      const texStep = TEX / lineH;
+      let texPos = (yStart - dStart) * texStep;
+
+      const fog = 1 / (1 + dist*dist*0.075);
+      const beamFall = BEAM_POWER / (1 + dist*dist*0.30);
+      let lum = (AMBIENT + muzzleLight)*fog + beam[x]*beamFall*fog;
+      if(side === 1) lum *= 0.70;                 // zijkanten vangen minder licht
+      if(lum > 1.5) lum = 1.5;
+
+      let di = yStart*RW + x;
+      for(let y=yStart; y<yEnd; y++){
+        const ty = texPos & TEX_MASK;
+        texPos += texStep;
+        const o = ((ty << 6) + texX) * 3;
+        let r = tex[o]*lum, g = tex[o+1]*lum, b = tex[o+2]*lum;
+        if(r > 255) r = 255; if(g > 255) g = 255; if(b > 255) b = 255;
+        fb32[di] = pack(r|0, g|0, b|0);
+        di += RW;
+      }
+    }
+  }
+
+  // ---- ballonnen als gealphablende sprites, met muren ervoor ----
+  function renderSprites(){
+    const muzzleLight = muzzle * 0.55;
+    const visible = [];
+    for(const b of balloons){
+      const p = projectBalloon(b);
+      if(!p) continue;
+      if(p.screenX + p.rPix*1.6 < 0 || p.screenX - p.rPix*1.6 > RW) continue;
+      visible.push({b, p});
+    }
+    visible.sort((a, z) => z.p.dist - a.p.dist);   // ver eerst, dichtbij erover
+
+    for(const {b, p} of visible){
+      const spr = SPRITES[b.spriteKey];
+      const drawH = p.rPix * 2 * (SPR_H / (2*42));   // ballonlichaam is 84px hoog in de sprite
+      const drawW = drawH * (SPR_W / SPR_H);
+      const left = p.screenX - drawW/2;
+      const top = p.centerY - (52/SPR_H)*drawH;      // hart van de ballon uitlijnen
+
+      const x0 = Math.max(0, Math.floor(left));
+      const x1 = Math.min(RW-1, Math.ceil(left + drawW));
+      const y0 = Math.max(0, Math.floor(top));
+      const y1 = Math.min(RH-1, Math.ceil(top + drawH));
+      if(x1 < x0 || y1 < y0) continue;
+
+      const fog = 1 / (1 + p.dist*p.dist*0.075);
+      const beamFall = BEAM_POWER / (1 + p.dist*p.dist*0.30);
+      const sxStep = SPR_W / drawW, syStep = SPR_H / drawH;
+
+      for(let x=x0; x<=x1; x++){
+        if(zbuf[x] <= p.dist) continue;              // muur staat ervoor
+        const tx = ((x - left) * sxStep) | 0;
+        if(tx < 0 || tx >= SPR_W) continue;
+
+        let lum = (AMBIENT + muzzleLight)*fog + beam[x]*beamFall*fog;
+        if(lum > 1.6) lum = 1.6;
+
+        for(let y=y0; y<=y1; y++){
+          const ty = ((y - top) * syStep) | 0;
+          if(ty < 0 || ty >= SPR_H) continue;
+          const si = (ty*SPR_W + tx) * 4;
+          const a = spr.data[si+3];
+          if(a < 6) continue;
+
+          const di = (y*RW + x) * 4;
+          const sr = spr.data[si]*lum, sg = spr.data[si+1]*lum, sb = spr.data[si+2]*lum;
+          if(a >= 252){
+            fb8[di] = sr; fb8[di+1] = sg; fb8[di+2] = sb;
+          } else {
+            const ia = a/255, inv = 1 - ia;
+            fb8[di]   = fb8[di]  *inv + sr*ia;
+            fb8[di+1] = fb8[di+1]*inv + sg*ia;
+            fb8[di+2] = fb8[di+2]*inv + sb*ia;
+          }
+        }
+      }
+    }
+  }
+
+  // =======================================================================
+  //  NABEWERKING: vignet en filmkorrel
+  // =======================================================================
+  const vignette = (() => {
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const grad = g.createRadialGradient(W/2, H/2, H*0.28, W/2, H/2, H*0.82);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(0.65, 'rgba(0,0,0,0.35)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.82)');
+    g.fillStyle = grad; g.fillRect(0, 0, W, H);
+    return c;
+  })();
+
+  const grain = (() => {
+    const c = document.createElement('canvas');
+    c.width = 220; c.height = 220;
+    const g = c.getContext('2d');
+    const img = g.createImageData(220, 220);
+    for(let i=0; i<img.data.length; i+=4){
+      const v = Math.random()*255 | 0;
+      img.data[i] = img.data[i+1] = img.data[i+2] = v;
+      img.data[i+3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+    return c;
+  })();
+
+  // =======================================================================
+  //  WAPEN, VIZIER, EFFECTEN, MINIKAART
+  // =======================================================================
+  function drawWeapon(){
+    const kick = recoil*26;
+    const baseX = W/2 + swayX*1.6;
+    const baseY = H + swayY*1.5 - kick + pitchN*H*0.35;
+
+    ctx.save();
+    ctx.translate(baseX, baseY);
+    ctx.rotate(recoil*-0.045 + roll*2);
+
+    // slagschaduw op de onderrand van het scherm
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.beginPath(); ctx.ellipse(0, -20, 120, 40, 0, 0, Math.PI*2); ctx.fill();
+
+    // rechterhand
+    let hand = ctx.createLinearGradient(-60, -110, -20, -20);
+    hand.addColorStop(0, '#c69a71'); hand.addColorStop(1, '#6d4c33');
+    ctx.fillStyle = hand;
+    ctx.beginPath(); ctx.roundRect(-58, -104, 38, 84, 14); ctx.fill();
+
+    // wapenbody: donker metaal met glanslijn
+    let body = ctx.createLinearGradient(-46, -180, 46, -60);
+    body.addColorStop(0, '#2a2f3a');
+    body.addColorStop(0.42, '#4d5566');
+    body.addColorStop(0.5, '#6b7488');
+    body.addColorStop(0.58, '#434b5c');
+    body.addColorStop(1, '#1c202a');
+    ctx.fillStyle = body;
+    ctx.beginPath(); ctx.roundRect(-46, -186, 92, 124, 14); ctx.fill();
+
+    // panelen en schroeven
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath(); ctx.roundRect(-36, -172, 72, 40, 8); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.beginPath(); ctx.roundRect(-36, -172, 72, 6, 3); ctx.fill();
+    ctx.fillStyle = '#8d97ab';
+    for(const [sx, sy] of [[-38,-70],[38,-70],[-38,-178],[38,-178]]){
+      ctx.beginPath(); ctx.arc(sx, sy, 3.2, 0, Math.PI*2); ctx.fill();
+    }
+
+    // loop
+    let barrel = ctx.createLinearGradient(-26, 0, 26, 0);
+    barrel.addColorStop(0, '#161a22');
+    barrel.addColorStop(0.4, '#3f4757');
+    barrel.addColorStop(0.55, '#5e677a');
+    barrel.addColorStop(1, '#12151c');
+    ctx.fillStyle = barrel;
+    ctx.beginPath(); ctx.roundRect(-26, -262, 52, 88, 12); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    for(let i=0; i<4; i++) ctx.fillRect(-26, -250 + i*16, 52, 4);
+
+    // oranje accentring
+    ctx.fillStyle = '#c8632a';
+    ctx.beginPath(); ctx.roundRect(-28, -276, 56, 18, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.22)';
+    ctx.beginPath(); ctx.roundRect(-28, -276, 56, 5, 3); ctx.fill();
+
+    // energiekern die zachtjes pulseert
+    const pulse = 0.75 + Math.sin(bobPhase*2)*0.12 + recoil*0.5;
+    ctx.save();
+    ctx.shadowColor = 'rgba(139,255,176,0.9)';
+    ctx.shadowBlur = 26*pulse;
+    const core = ctx.createRadialGradient(0, -132, 1, 0, -132, 16);
+    core.addColorStop(0, '#ffffff');
+    core.addColorStop(0.35, '#8bffb0');
+    core.addColorStop(1, 'rgba(60,180,110,0.15)');
+    ctx.fillStyle = core;
+    ctx.beginPath(); ctx.arc(0, -132, 15*pulse, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+
+    // linkerhand over de loop
+    hand = ctx.createLinearGradient(14, -130, 60, -40);
+    hand.addColorStop(0, '#d2a67c'); hand.addColorStop(1, '#7a563a');
+    ctx.fillStyle = hand;
+    ctx.beginPath(); ctx.roundRect(16, -126, 40, 96, 16); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    for(let i=0; i<3; i++){
+      ctx.beginPath(); ctx.roundRect(20, -112 + i*24, 32, 4, 2); ctx.fill();
+    }
+
+    // mondingsvlam
+    if(muzzle > 0.02){
+      const m = muzzle;
+      ctx.globalAlpha = Math.min(1, m*1.3);
+      ctx.save();
+      ctx.shadowColor = 'rgba(255,220,150,0.95)';
+      ctx.shadowBlur = 50;
+      const flash = ctx.createRadialGradient(0, -286, 2, 0, -286, 52*m + 18);
+      flash.addColorStop(0, '#ffffff');
+      flash.addColorStop(0.25, '#ffe9a8');
+      flash.addColorStop(0.6, 'rgba(255,160,60,0.55)');
+      flash.addColorStop(1, 'rgba(255,120,40,0)');
+      ctx.fillStyle = flash;
+      ctx.beginPath(); ctx.ellipse(0, -286, 40*m + 14, 48*m + 16, 0, 0, Math.PI*2); ctx.fill();
+      // sterpunten
+      ctx.strokeStyle = 'rgba(255,235,190,0.85)';
+      ctx.lineWidth = 3;
+      for(let i=0; i<6; i++){
+        const a = i*Math.PI/3 + 0.3;
+        const len = (26 + Math.random()*26)*m;
+        ctx.beginPath();
+        ctx.moveTo(0, -286);
+        ctx.lineTo(Math.cos(a)*len, -286 + Math.sin(a)*len);
+        ctx.stroke();
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }
+
+  function drawCrosshair(){
+    const cx = W/2, cy = H/2;
+    const gap = 8 + recoil*12;
+    const len = 10;
+    const col = hitFlash > 0 ? 'rgba(139,255,176,0.95)'
+              : (missFlash > 0 ? 'rgba(255,107,107,0.95)' : 'rgba(235,232,248,0.7)');
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 4;
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - gap - len, cy); ctx.lineTo(cx - gap, cy);
+    ctx.moveTo(cx + gap, cy); ctx.lineTo(cx + gap + len, cy);
+    ctx.moveTo(cx, cy - gap - len); ctx.lineTo(cx, cy - gap);
+    ctx.moveTo(cx, cy + gap); ctx.lineTo(cx, cy + gap + len);
+    ctx.stroke();
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(cx, cy, 1.4, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawEffects(){
+    for(const p of particles){
+      const a = 1 - p.life/0.85;
+      ctx.save();
+      ctx.globalAlpha = Math.max(a, 0);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-3, -1.6, 6, 3.2);       // flarden latex
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.textAlign = 'center';
+    ctx.font = "800 21px 'Baloo 2', sans-serif";
+    for(const f of floats){
+      const a = 1 - f.life/f.max;
+      ctx.globalAlpha = Math.max(a, 0);
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillText(f.text, f.x + 2, f.y + 2);
+      ctx.fillStyle = f.color;
+      ctx.fillText(f.text, f.x, f.y);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawMinimap(){
+    const cs = 6;
+    const mw = MAP_W*cs, mh = MAP_H*cs;
+    const ox = 14, oy = H - mh - 14;
+
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = 'rgba(8,6,16,0.88)';
+    ctx.beginPath(); ctx.roundRect(ox-6, oy-6, mw+12, mh+12, 8); ctx.fill();
+    ctx.strokeStyle = 'rgba(139,255,176,0.26)'; ctx.lineWidth = 1; ctx.stroke();
+
+    for(let y=0; y<MAP_H; y++){
+      for(let x=0; x<MAP_W; x++){
+        const c = MAP[y][x];
+        if(c === '.') continue;
+        ctx.fillStyle = c === '1' ? '#3d5f7c' : (c === '2' ? '#8a5730' : '#332e4a');
+        ctx.fillRect(ox + x*cs, oy + y*cs, cs, cs);
+      }
+    }
+
+    for(const b of balloons){
+      ctx.fillStyle = b.miniColor;
+      ctx.beginPath(); ctx.arc(ox + b.x*cs, oy + b.y*cs, 2, 0, Math.PI*2); ctx.fill();
+    }
+
+    // zaklampkegel op de kaart
+    const px = ox + cam.x*cs, py = oy + cam.y*cs;
+    const a0 = Math.atan2(cam.dirY, cam.dirX);
+    ctx.fillStyle = 'rgba(255,240,190,0.16)';
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.arc(px, py, 22, a0 - 0.5, a0 + 0.5);
+    ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = '#8bffb0';
+    ctx.beginPath(); ctx.arc(px, py, 2.8, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  // =======================================================================
+  //  BEELD SAMENSTELLEN
+  // =======================================================================
+  let grainX = 0, grainY = 0;
+
+  function present(){
+    fbCtx.putImageData(frame, 0, 0);
+
+    ctx.save();
+    // lichte camerakanteling tijdens het lopen; iets overtekenen tegen randen
+    if(roll !== 0){
+      ctx.translate(W/2, H/2);
+      ctx.rotate(roll);
+      ctx.translate(-W/2, -H/2);
+    }
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    const over = 1.03;
+    ctx.drawImage(fbCanvas, -W*(over-1)/2, -H*(over-1)/2, W*over, H*over);
+    ctx.restore();
+
+    // filmkorrel
+    if(!reduceMotion){
+      grainX = (Math.random()*120) | 0;
+      grainY = (Math.random()*120) | 0;
+      ctx.save();
+      ctx.globalAlpha = 0.045;
+      ctx.globalCompositeOperation = 'overlay';
+      for(let x=-grainX; x<W; x+=220){
+        for(let y=-grainY; y<H; y+=220){
+          ctx.drawImage(grain, x, y);
+        }
+      }
+      ctx.restore();
+    }
+
+    // vignet
+    ctx.drawImage(vignette, 0, 0);
+
+    // treffer- en misserflits
+    if(hitFlash > 0.55){
+      ctx.fillStyle = 'rgba(139,255,176,' + ((hitFlash-0.55)*0.16) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+    if(missFlash > 0.55){
+      ctx.fillStyle = 'rgba(255,60,60,' + ((missFlash-0.55)*0.20) + ')';
+      ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  // =======================================================================
+  //  HOOFDLUS met automatische resolutieregeling
+  // =======================================================================
+  let last = performance.now();
+  let hudTick = 0;
+  let frameTimes = [], adaptCooldown = 0;
+
+  function loop(now){
+    const dt = Math.min((now - last)/1000, 0.05);
+    last = now;
+    const t0 = performance.now();
+
+    if(running && !paused){
+      update(dt);
+      hudTick += dt;
+      if(hudTick > 0.1){ hudTick = 0; updateHud(); }
+    }
+
+    renderWorld();
+    renderSprites();
+    present();
+    drawEffects();
+    drawWeapon();
+    drawCrosshair();
+    drawMinimap();
+
+    // Loopt het zwaar, dan zakt de renderresolutie; loopt het licht, dan stijgt hij
+    frameTimes.push(performance.now() - t0);
+    if(frameTimes.length > 45) frameTimes.shift();
+    adaptCooldown -= dt;
+    if(frameTimes.length === 45 && adaptCooldown <= 0){
+      const avg = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+      if(avg > 13 && renderScale > 0.45){ setRenderScale(renderScale - 0.10); adaptCooldown = 2; frameTimes = []; }
+      else if(avg < 5.5 && renderScale < 0.88){ setRenderScale(renderScale + 0.07); adaptCooldown = 3; frameTimes = []; }
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  spawnBalloon();
+  updateHud();
+  requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>
