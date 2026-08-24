@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Spookgangen</title>
+<title>Klaslokaal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Baloo+2:wght@500;600;800&display=swap" rel="stylesheet">
@@ -221,14 +221,14 @@
 <body>
 
 <div class="hero">
-  <p class="eyebrow">Prototype · gemaakt voor Milan</p>
-  <h1>SPOOKGANGEN</h1>
-  <p>Het is nacht op school en het licht doet het niet. In het donker zie je eerst alleen hun ogen gloeien — daarna komen ze op je af. Loop met <strong>WASD</strong>, kijk met je <strong>muis</strong> en verjaag zoveel mogelijk wezens in 60 seconden.</p>
+  <p class="eyebrow">Interactieve school · lokaal 2B</p>
+  <h1>HET KLASLOKAAL</h1>
+  <p>Stap een levensecht klaslokaal binnen. Loop met <strong>WASD</strong>, kijk vrij rond met je <strong>muis</strong> en ontdek de ramen, bureaus, deur en schoolmuren in first person.</p>
 </div>
 
 <div class="stage-wrap">
   <div class="stage unlocked" id="stage">
-    <canvas id="game" width="880" height="540" aria-label="Spookgangen first-person spel"></canvas>
+    <canvas id="game" width="880" height="540" aria-label="Klaslokaal first-person ervaring"></canvas>
 
     <div class="hud">
       <div class="hud-panel">
@@ -246,12 +246,12 @@
     </div>
 
     <div class="overlay" id="start-overlay">
-      <h2>Durf jij de gangen in?</h2>
-      <p>Je muis wordt vastgezet zodat je vrij rond kunt kijken, net als in een echte shooter. <strong>Esc</strong> pauzeert, <strong>M</strong> zet het geluid uit.</p>
+        <h2>Welkom in lokaal 2B</h2>
+      <p>Je muis wordt vastgezet zodat je vrij rond kunt kijken. Verken het lokaal met <strong>WASD</strong>, sprint met <strong>Shift</strong> en spring met <strong>spatie</strong>. <strong>Esc</strong> laat je muis weer los.</p>
       <div class="key-row">
         <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
         <kbd style="margin-left:10px;">Muis = rondkijken</kbd>
-        <kbd>Klik = schieten</kbd>
+        <kbd>Klik = rondkijken</kbd>
       </div>
       <button class="play-btn" id="start-btn">Start spel</button>
     </div>
@@ -280,20 +280,20 @@
     <div><h3>Bewegen &amp; richten</h3><p>W/S vooruit en achteruit, A/D zijwaarts. Muis om rond te kijken, ook omhoog en omlaag</p></div>
   </div>
   <div class="legend-card">
-    <div class="legend-icon good">👻</div>
-    <div><h3>Schimmen</h3><p>Zweven op ooghoogte, kruipen over de vloer of fladderen hoog. +10 × je combo</p></div>
+    <div class="legend-icon good">🪟</div>
+    <div><h3>Ramen &amp; licht</h3><p>Bekijk het glas, de kozijnen en het zachte licht dat door het lokaal valt</p></div>
   </div>
   <div class="legend-card">
-    <div class="legend-icon gold">👑</div>
-    <div><h3>Schimmenkoning</h3><p>Zeldzaam en razendsnel, met een gouden gloed — maar +50 punten waard</p></div>
+    <div class="legend-icon gold">🪑</div>
+    <div><h3>Werkplekken</h3><p>Loop langs de houten leerlingtafels en ontdek de indeling van lokaal 2B</p></div>
   </div>
   <div class="legend-card">
-    <div class="legend-icon bad">🐱</div>
-    <div><h3>Spookkat</h3><p>Doet niemand kwaad. Schiet je er toch op, dan kost dat 15 punten en je combo</p></div>
+    <div class="legend-icon bad">📚</div>
+    <div><h3>Docententafel &amp; bord</h3><p>Loop naar voren en bekijk het groene schoolbord, de boeken en de tafel van dichtbij</p></div>
   </div>
 </div>
 
-<footer>Raycasting-engine met echte texturen, zaklampverlichting en gloeiende ogen die los van het licht oplichten. De beeldresolutie past zich automatisch aan je computer aan.</footer>
+  <footer>Een interactieve first-person schoolruimte met procedurele texturen, zachte verlichting en vrije muisbesturing.</footer>
 
 <script>
 (function(){
@@ -305,6 +305,7 @@
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
+  const CLASSROOM_MODE = true;
   const stage = document.getElementById('stage');
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -401,11 +402,11 @@
   });
 
   const texWall = bakeTexture((g) => {
-    g.fillStyle = '#4a4364'; g.fillRect(0, 0, TEX, TEX);
-    g.fillStyle = '#3a3450'; g.fillRect(0, 38, TEX, TEX-38);
-    g.fillStyle = '#2b2740'; g.fillRect(0, 36, TEX, 3);
+    g.fillStyle = '#f0dfcf'; g.fillRect(0, 0, TEX, TEX);
+    g.fillStyle = '#d6b89c'; g.fillRect(0, 38, TEX, TEX-38);
+    g.fillStyle = '#b9825c'; g.fillRect(0, 36, TEX, 3);
     g.fillStyle = 'rgba(255,255,255,0.12)'; g.fillRect(0, 35, TEX, 1);
-    g.fillStyle = '#221f33'; g.fillRect(0, TEX-5, TEX, 5);
+    g.fillStyle = '#8b4f32'; g.fillRect(0, TEX-5, TEX, 5);
 
     for(let i=0; i<10; i++){
       const x = Math.random()*TEX, y = Math.random()*36, r = 3 + Math.random()*9;
@@ -455,16 +456,64 @@
     noiseOverlay(g, 700, 1, 0.07);
   });
 
+  const texWindow = bakeTexture((g) => {
+    const frame = g.createLinearGradient(0, 0, TEX, 0);
+    frame.addColorStop(0, '#27313d');
+    frame.addColorStop(0.5, '#4c5b68');
+    frame.addColorStop(1, '#202a35');
+    g.fillStyle = frame; g.fillRect(0, 0, TEX, TEX);
+
+    const glass = g.createLinearGradient(0, 0, TEX, TEX);
+    glass.addColorStop(0, '#182a3b');
+    glass.addColorStop(0.45, '#41627a');
+    glass.addColorStop(1, '#101b28');
+    g.fillStyle = glass; g.fillRect(7, 6, 50, 43);
+    g.fillStyle = 'rgba(172,220,238,0.20)';
+    g.beginPath(); g.moveTo(10, 44); g.lineTo(29, 8); g.lineTo(39, 8); g.lineTo(18, 48); g.closePath(); g.fill();
+    g.fillStyle = 'rgba(7,14,22,0.72)';
+    g.fillRect(30, 6, 3, 43); g.fillRect(7, 25, 50, 3);
+    g.fillStyle = '#18202a';
+    g.fillRect(0, 49, TEX, 5); g.fillRect(0, 54, TEX, 10);
+    g.fillStyle = 'rgba(255,255,255,0.14)'; g.fillRect(7, 6, 50, 2);
+    noiseOverlay(g, 500, 1, 0.06);
+  });
+
+  const texDesk = bakeTexture((g) => {
+    const wood = g.createLinearGradient(0, 0, 0, TEX);
+    wood.addColorStop(0, '#b77a45');
+    wood.addColorStop(0.48, '#8b542d');
+    wood.addColorStop(1, '#4d2b1b');
+    g.fillStyle = wood; g.fillRect(0, 0, TEX, TEX);
+    g.fillStyle = 'rgba(255,220,160,0.18)';
+    for(let y=8; y<TEX; y+=12) g.fillRect(0, y, TEX, 2);
+    g.fillStyle = 'rgba(30,18,10,0.45)';
+    g.fillRect(0, 0, TEX, 4); g.fillRect(0, TEX-5, TEX, 5);
+    g.fillStyle = '#303842';
+    g.fillRect(8, 42, 48, 14); g.fillRect(12, 56, 6, 8); g.fillRect(46, 56, 6, 8);
+    noiseOverlay(g, 420, 1, 0.05);
+  });
+
+  const texBoard = bakeTexture((g) => {
+    g.fillStyle = '#7b472d'; g.fillRect(0, 0, TEX, TEX);
+    g.fillStyle = '#2f633f'; g.fillRect(5, 7, 54, 42);
+    g.fillStyle = 'rgba(225,240,196,0.72)';
+    g.fillRect(12, 18, 25, 2); g.fillRect(20, 29, 35, 2); g.fillRect(10, 39, 31, 2);
+    g.strokeStyle = 'rgba(255,255,255,0.2)'; g.lineWidth = 1; g.strokeRect(5, 7, 54, 42);
+    g.fillStyle = '#c58a50'; g.fillRect(5, 49, 54, 7);
+    g.fillStyle = '#ead2b0'; g.fillRect(10, 51, 8, 3); g.fillRect(23, 51, 6, 3);
+    noiseOverlay(g, 350, 1, 0.04);
+  });
+
   const texFloor = bakeTexture((g) => {
-    g.fillStyle = '#3b3550'; g.fillRect(0, 0, TEX, TEX);
-    const tints = ['#40395a', '#37314c', '#3d3655', '#342f47'];
+    g.fillStyle = '#b86f43'; g.fillRect(0, 0, TEX, TEX);
+    const tints = ['#c98250', '#b96f42', '#d08b57', '#a95f39'];
     for(let ty=0; ty<2; ty++){
       for(let tx=0; tx<2; tx++){
         g.fillStyle = tints[ty*2+tx];
         g.fillRect(tx*32 + 1, ty*32 + 1, 30, 30);
       }
     }
-    g.fillStyle = '#242038';
+    g.fillStyle = '#7d442d';
     g.fillRect(0, 0, TEX, 2); g.fillRect(0, 31, TEX, 2);
     g.fillRect(0, 0, 2, TEX); g.fillRect(31, 0, 2, TEX);
     for(let i=0; i<600; i++){
@@ -482,10 +531,10 @@
   });
 
   const texCeiling = bakeTexture((g) => {
-    g.fillStyle = '#26223a'; g.fillRect(0, 0, TEX, TEX);
-    g.fillStyle = '#2c2842'; g.fillRect(2, 2, 28, 28); g.fillRect(34, 2, 28, 28);
+    g.fillStyle = '#f7efe5'; g.fillRect(0, 0, TEX, TEX);
+    g.fillStyle = '#ead8c8'; g.fillRect(2, 2, 28, 28); g.fillRect(34, 2, 28, 28);
     g.fillRect(2, 34, 28, 28); g.fillRect(34, 34, 28, 28);
-    g.fillStyle = '#191627';
+    g.fillStyle = '#c8a98f';
     g.fillRect(0, 0, TEX, 2); g.fillRect(0, 31, TEX, 2);
     g.fillRect(0, 0, 2, TEX); g.fillRect(31, 0, 2, TEX);
     for(let i=0; i<380; i++){
@@ -784,16 +833,16 @@
   //  PLATTEGROND
   // =======================================================================
   const MAP = [
-    "####################",
+    "########5###########",
     "#........##........#",
     "#.111.11.##.11.111.#",
-    "#..................#",
+    "#..3....4....4...3.#",
     "#..................#",
     "#.####.######.####.#",
     "#.#..#.#....#.#..#.#",
     "#.#..2.2....2.2..#.#",
     "#.####.######.####.#",
-    "#..................#",
+    "#..3..4......4...3.#",
     "#..................#",
     "#.111.11.##.11.111.#",
     "#........##........#",
@@ -805,7 +854,7 @@
   const MAP_W = MAP[0].length, MAP_H = MAP.length;
 
   const grid = new Uint8Array(MAP_W * MAP_H);
-  const CELL_CHARS = ['.', '#', '1', '2'];
+  const CELL_CHARS = ['.', '#', '1', '2', '3', '4', '5'];
   for(let y=0; y<MAP_H; y++){
     for(let x=0; x<MAP_W; x++) grid[y*MAP_W + x] = CELL_CHARS.indexOf(MAP[y][x]);
   }
@@ -844,6 +893,17 @@
   const PITCH_KEYS = 0.55;
   const PITCH_MAX = 0.42;
   const PLAYER_R = 0.24;
+  const JUMP_FORCE = 5.2;
+  const GRAVITY = 15.5;
+  const SPRINT_MULTIPLIER = 1.65;
+
+  const gate = {x: 10.5, y: 4.4, triggered: false};
+  const classroomMonster = {
+    x: 10.5, y: 3.25, z: 0.62, active: false,
+    k: {r:0.88, zBase:0.62, zAmp:0.04},
+    spriteKey: 'wraith2', life: 0, wob: 0
+  };
+  let jumpY = 0, jumpV = 0, classroomJumpscare = 0, monsterBeat = 0;
 
   let pitchN = 0;
   function clampPitch(){ pitchN = Math.max(-PITCH_MAX, Math.min(PITCH_MAX, pitchN)); }
@@ -869,19 +929,23 @@
     cam.x = SPAWN.x; cam.y = SPAWN.y;
     cam.dirX = SPAWN.dirX; cam.dirY = SPAWN.dirY;
     cam.planeX = SPAWN.planeX; cam.planeY = SPAWN.planeY;
-    pitchN = 0; bobPhase = 0; roll = 0;
+    pitchN = 0; bobPhase = 0; roll = 0; jumpY = 0; jumpV = 0;
+    gate.triggered = false;
+    classroomMonster.x = gate.x; classroomMonster.y = 3.25;
+    classroomMonster.active = false; classroomMonster.life = 0;
+    classroomJumpscare = 0; monsterBeat = 0;
     creatures.length = 0; particles.length = 0; floats.length = 0;
     score = 0; combo = 1; banished = 0; timeLeft = 60;
     spawnTimer = 0; spawnInterval = 1.2;
     recoil = 0; muzzle = 0; hitFlash = 0; missFlash = 0; scareFlash = 0; shake = 0;
-    for(let i=0; i<4; i++) spawnCreature();
+    if(!CLASSROOM_MODE) for(let i=0; i<4; i++) spawnCreature();
     updateHud();
   }
 
   function updateHud(){
     scoreValueEl.textContent = score;
     comboValueEl.textContent = 'x' + combo;
-    const secs = Math.max(0, Math.ceil(timeLeft));
+    const secs = CLASSROOM_MODE ? '∞' : Math.max(0, Math.ceil(timeLeft));
     timerValueEl.textContent = secs;
     timerValueEl.classList.toggle('low', secs <= 10);
   }
@@ -1017,7 +1081,7 @@
     const k = e.key.toLowerCase();
     keys[k] = true;
     if(k === ' ' || k === 'arrowup' || k === 'arrowdown') e.preventDefault();
-    if(k === ' ') shoot();
+    if(k === ' ' && !CLASSROOM_MODE) shoot();
     if(k === 'm') setMuted(!muted);
   });
   window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
@@ -1036,7 +1100,7 @@
       if(running && !paused) requestLock();
       return;
     }
-    shoot();
+    if(!CLASSROOM_MODE) shoot();
   });
 
   function requestLock(){
@@ -1114,8 +1178,8 @@
   }
   setRenderScale(0.72);
 
-  const AMBIENT = 0.075;
-  const BEAM_POWER = 2.9;
+  const AMBIENT = 0.11;
+  const BEAM_POWER = 2.8;
 
   // =======================================================================
   //  SCHIETEN
@@ -1130,9 +1194,93 @@
     return {
       dist: tY,
       screenX: (RW/2) * (1 + tX/tY),
-      centerY: RH*(0.5 + pitchN) + (0.5 - c.z) * scale,
+      centerY: RH*(0.5 + pitchN) - jumpY*RH*0.08 + (0.5 - c.z) * scale,
       rPix: c.k.r * scale
     };
+  }
+
+  function updateClassroomMonster(dt){
+    const distance = Math.hypot(cam.x - gate.x, cam.y - gate.y);
+    monsterBeat = Math.max(0, monsterBeat - dt);
+    if(!classroomMonster.active && distance < 2.4){
+      classroomMonster.active = true;
+      creatures.push(classroomMonster);
+      sfx.scare();
+    }
+    if(!classroomMonster.active) return;
+
+    if(distance < 3.2 && distance > 1.05 && monsterBeat <= 0){
+      monsterBeat = Math.max(0.34, distance * 0.18);
+      tone('sine', 72, 48, 0.16, 0.12);
+    }
+
+    classroomMonster.life += dt;
+    classroomMonster.wob += dt * 7;
+    classroomMonster.z = 0.62 + Math.sin(classroomMonster.wob) * 0.07;
+    const dx = cam.x - classroomMonster.x, dy = cam.y - classroomMonster.y;
+    const length = Math.hypot(dx, dy) || 1;
+    if(distance < 1.05 && !classroomJumpscare){
+      classroomJumpscare = 1;
+      paused = true;
+      scareFlash = 1;
+      shake = 1;
+      sfx.scare();
+      if(document.pointerLockElement === canvas) document.exitPointerLock();
+      setTimeout(() => { classroomJumpscare = 0; endGame(); }, 900);
+      return;
+    }
+
+    const speed = 1.18;
+    const mx = dx/length * speed * dt, my = dy/length * speed * dt;
+    if(!blocked(classroomMonster.x + mx, classroomMonster.y)) classroomMonster.x += mx;
+    if(!blocked(classroomMonster.x, classroomMonster.y + my)) classroomMonster.y += my;
+  }
+
+  function drawClassroomGate(){
+    const sx = gate.x - cam.x, sy = gate.y - cam.y;
+    const invDet = 1 / (cam.planeX*cam.dirY - cam.dirX*cam.planeY);
+    const tX = invDet * (cam.dirY*sx - cam.dirX*sy);
+    const tY = invDet * (-cam.planeY*sx + cam.planeX*sy);
+    if(tY <= 0.15) return;
+
+    const scale = H / tY;
+    const centerX = W/2 * (1 + tX/tY);
+    const centerY = H*(0.5 + pitchN) - jumpY*H*0.08;
+    const gateW = 1.65 * scale;
+    const gateH = 1.9 * scale;
+    const left = centerX - gateW/2, top = centerY - gateH*0.58;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.98)';
+    ctx.fillRect(left + gateW*0.08, top + gateH*0.06, gateW*0.84, gateH*0.9);
+    ctx.fillStyle = '#7b472d';
+    ctx.fillRect(left, top, gateW*0.08, gateH);
+    ctx.fillRect(left + gateW*0.92, top, gateW*0.08, gateH);
+    ctx.fillRect(left, top, gateW, Math.max(5, gateW*0.08));
+    ctx.strokeStyle = 'rgba(255,220,170,0.7)';
+    ctx.lineWidth = Math.max(1, gateW*0.018);
+    ctx.strokeRect(left, top, gateW, gateH);
+    ctx.restore();
+  }
+
+  function drawClassroomJumpscare(){
+    if(!classroomJumpscare) return;
+    const pulse = 1 + Math.sin(performance.now()*0.045)*0.06;
+    ctx.save();
+    ctx.fillStyle = 'rgba(24,0,0,0.78)'; ctx.fillRect(0, 0, W, H);
+    ctx.translate(W/2, H/2); ctx.scale(pulse, pulse);
+    ctx.fillStyle = '#090708';
+    ctx.beginPath(); ctx.ellipse(0, 10, 190, 245, 0, 0, Math.PI*2); ctx.fill();
+    ctx.shadowColor = '#ff2525'; ctx.shadowBlur = 34;
+    ctx.fillStyle = '#ff463d';
+    ctx.beginPath(); ctx.ellipse(-68, -52, 28, 42, -0.15, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(68, -52, 28, 42, 0.15, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#050305';
+    ctx.beginPath(); ctx.ellipse(0, 112, 72, 92, 0, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#f4e1c1';
+    for(let i=-3; i<=3; i++) ctx.fillRect(i*18 - 6, 76 + Math.abs(i)*5, 12, 30);
+    ctx.restore();
   }
 
   function shoot(){
@@ -1218,14 +1366,21 @@
   //  UPDATE
   // =======================================================================
   function update(dt){
-    timeLeft -= dt;
-    if(timeLeft <= 0){ timeLeft = 0; updateHud(); endGame(); return; }
+    if(!CLASSROOM_MODE){
+      timeLeft -= dt;
+      if(timeLeft <= 0){ timeLeft = 0; updateHud(); endGame(); return; }
+    }
 
     if(keys['arrowleft']) rotate(-TURN_SPEED*dt);
     if(keys['arrowright']) rotate(TURN_SPEED*dt);
     if(keys['arrowup']) pitchN += PITCH_KEYS*dt;
     if(keys['arrowdown']) pitchN -= PITCH_KEYS*dt;
     if(keys['arrowup'] || keys['arrowdown']) clampPitch();
+
+    if(keys[' '] && jumpY === 0){ jumpV = JUMP_FORCE; }
+    jumpV -= GRAVITY * dt;
+    jumpY = Math.max(0, jumpY + jumpV * dt);
+    if(jumpY === 0) jumpV = 0;
 
     let fwd = 0, strafe = 0;
     if(keys['w']) fwd += 1;
@@ -1240,8 +1395,9 @@
       fwd /= len; strafe /= len;
       const planeLen = Math.hypot(cam.planeX, cam.planeY) || 1;
       const sideX = cam.planeX/planeLen, sideY = cam.planeY/planeLen;
-      const mx = (cam.dirX*fwd + sideX*strafe) * MOVE_SPEED * dt;
-      const my = (cam.dirY*fwd + sideY*strafe) * MOVE_SPEED * dt;
+      const speed = MOVE_SPEED * (keys['shift'] ? SPRINT_MULTIPLIER : 1);
+      const mx = (cam.dirX*fwd + sideX*strafe) * speed * dt;
+      const my = (cam.dirY*fwd + sideY*strafe) * speed * dt;
       if(!blocked(cam.x + mx + Math.sign(mx)*PLAYER_R, cam.y)) cam.x += mx;
       if(!blocked(cam.x, cam.y + my + Math.sign(my)*PLAYER_R)) cam.y += my;
 
@@ -1260,11 +1416,12 @@
     spawnTimer += dt;
     if(spawnTimer > spawnInterval){
       spawnTimer = 0;
-      spawnCreature();
+      if(!CLASSROOM_MODE) spawnCreature();
       spawnInterval = Math.max(0.55, spawnInterval - 0.014);
     }
 
-    updateCreatures(dt);
+    if(!CLASSROOM_MODE) updateCreatures(dt);
+    else updateClassroomMonster(dt);
 
     for(let i=particles.length-1; i>=0; i--){
       const p = particles[i];
@@ -1341,7 +1498,7 @@
   //  RENDEREN: vloer & plafond, muren
   // =======================================================================
   function renderWorld(){
-    const horizon = RH*(0.5 + pitchN);
+    const horizon = RH*(0.5 + pitchN) - jumpY*RH*0.08;
     const posZ = 0.5 * RH;
     const muzzleLight = muzzle * 0.55;
 
@@ -1423,7 +1580,7 @@
       if((side === 0 && rayDirX > 0) || (side === 1 && rayDirY < 0)) texX = TEX - texX - 1;
       texX &= TEX_MASK;
 
-      const tex = code === 2 ? texLocker : (code === 3 ? texDoor : texWall);
+      const tex = code === 2 ? texLocker : (code === 3 ? texDoor : (code === 4 ? texWindow : (code === 5 ? texDesk : (code === 6 ? texBoard : texWall))));
       const texStep = TEX / lineH;
       let texPos = (yStart - dStart) * texStep;
 
@@ -1802,11 +1959,12 @@
     }
 
     renderWorld();
-    renderCreatures();
+    if(!CLASSROOM_MODE || classroomMonster.active) renderCreatures();
     present();
+    if(CLASSROOM_MODE && (!classroomMonster.active || Math.hypot(cam.x - classroomMonster.x, cam.y - classroomMonster.y) > 3)) drawClassroomGate();
+    if(CLASSROOM_MODE) drawClassroomJumpscare();
     drawEffects();
-    drawWeapon();
-    drawCrosshair();
+    if(!CLASSROOM_MODE){ drawWeapon(); drawCrosshair(); }
     drawMinimap();
 
     frameTimes.push(performance.now() - t0);
@@ -1821,7 +1979,7 @@
     requestAnimationFrame(loop);
   }
 
-  spawnCreature();
+  if(!CLASSROOM_MODE) spawnCreature();
   updateHud();
   requestAnimationFrame(loop);
 })();
