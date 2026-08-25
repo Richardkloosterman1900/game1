@@ -5409,49 +5409,6 @@
     }
   ];
 
-  // Extra speelbare varianten houden de spelhub groot zonder duizend losse bestanden.
-  const ORIGINAL_GAMES = GAMES.slice();
-  const REMIX_STYLES = [
-    {name:'Rustig', accent:'#3ddc97', goal:0.82, speed:0.72, time:1.35},
-    {name:'Turbo', accent:'#ff5fa2', goal:1.24, speed:1.48, time:0.78},
-    {name:'Precisie', accent:'#4aa8ff', goal:1.10, speed:1.08, time:0.92},
-    {name:'Chaos', accent:'#ff6b5e', goal:1.38, speed:1.32, time:0.86},
-    {name:'Marathon', accent:'#ffc23d', goal:1.62, speed:0.92, time:1.65},
-    {name:'Omgekeerd', accent:'#a978ff', goal:0.94, speed:1.18, time:1.08}
-  ];
-  function remixTune(tune, style){
-    const result = Object.assign({}, tune);
-    if(result.goal) result.goal = Math.max(1, Math.round(result.goal * style.goal));
-    if(result.speed) result.speed *= style.speed;
-    if(result.fall) result.fall *= style.speed;
-    if(result.gspeed) result.gspeed *= style.speed;
-    if(result.botSpeed) result.botSpeed *= style.speed;
-    if(result.step) result.step = Math.max(0.035, result.step / style.speed);
-    if(result.gap && result.gap < 10) result.gap = Math.max(0.12, result.gap / style.speed);
-    if(result.bombGap) result.bombGap = Math.max(0.18, result.bombGap / style.speed);
-    if(result.show) result.show = Math.max(0.12, result.show / style.speed);
-    if(result.life) result.life = Math.max(0.24, result.life / style.speed);
-    if(result.time && result.time < 900) result.time = Math.max(12, Math.round(result.time * style.time));
-    if(result.gap) result.gap = Math.max(48, result.gap / style.speed);
-    if(result.spacing) result.spacing = Math.max(150, result.spacing / style.speed);
-    if(result.rate) result.rate = Math.max(0.18, result.rate / style.speed);
-    if(result.patience) result.patience = Math.max(1.8, result.patience * style.time);
-    return result;
-  }
-  for(let i=GAMES.length; i<1000 - EXTERNAL.length; i++){
-    const base = ORIGINAL_GAMES[i % ORIGINAL_GAMES.length];
-    const style = REMIX_STYLES[i % REMIX_STYLES.length];
-    GAMES.push(Object.assign({}, base, {
-      id: base.id + '-variant-' + String(i + 1).padStart(4, '0'),
-      name: style.name + ' ' + base.name + ' ' + String(i + 1).padStart(4, '0'),
-      tag: style.name,
-      accent: style.accent,
-      blurb: 'Een ' + style.name.toLowerCase() + ' versie van ' + base.name + ' met een eigen tempo en uitdaging.',
-      tune(n){ return remixTune(base.tune(n), style); },
-      variant: true
-    }));
-  }
-
   // =======================================================================
   //  BADGES
   // =======================================================================
@@ -5462,7 +5419,7 @@
     {id:'rich', icon:'💰', name:'Rijk', desc:'Verzamel 1000 munten', test:() => P.coins >= 1000},
     {id:'lvl5', icon:'🏅', name:'Level 5', desc:'Bereik profielniveau 5', test:() => levelFor(P.xp).level >= 5},
     {id:'allgames', icon:'🎯', name:'Alles geprobeerd', desc:'Speel elk spel minstens één keer',
-      test:() => GAMES.filter(g => !g.variant).every(g => P.played[g.id])},
+      test:() => GAMES.every(g => P.played[g.id])},
     {id:'star10', icon:'⭐', name:'Tien sterren', desc:'Verdien 10 sterren', test:() => totalStars() >= 10},
     {id:'star50', icon:'🌟', name:'Vijftig sterren', desc:'Verdien 50 sterren', test:() => totalStars() >= 50},
     {id:'star150', icon:'✨', name:'Sterrenregen', desc:'Verdien 150 sterren', test:() => totalStars() >= 150},
